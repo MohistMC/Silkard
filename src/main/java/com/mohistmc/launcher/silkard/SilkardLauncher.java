@@ -30,7 +30,7 @@ public class SilkardLauncher {
                 """;
         System.out.printf("%n%s%n%s - %s, Java(%s) %s PID: %s%n",
                 logo,
-                "欢迎使用 Silkard(Fabirc)",
+                "Welcome Silkard(Fabirc)",
                 getVersion(),
                 System.getProperty("java.class.version"),
                 System.getProperty("java.version"),

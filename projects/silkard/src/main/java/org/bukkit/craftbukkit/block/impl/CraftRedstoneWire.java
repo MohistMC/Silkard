@@ -3,13 +3,13 @@
  */
 package org.bukkit.craftbukkit.block.impl;
 
-public final class CraftRedStoneWire extends org.bukkit.craftbukkit.block.data.CraftBlockData implements org.bukkit.block.data.type.RedstoneWire, org.bukkit.block.data.AnaloguePowerable {
+public final class CraftRedstoneWire extends org.bukkit.craftbukkit.block.data.CraftBlockData implements org.bukkit.block.data.type.RedstoneWire, org.bukkit.block.data.AnaloguePowerable {
 
-    public CraftRedStoneWire() {
+    public CraftRedstoneWire() {
         super();
     }
 
-    public CraftRedStoneWire(net.minecraft.world.level.block.state.BlockState state) {
+    public CraftRedstoneWire(net.minecraft.world.level.block.state.BlockState state) {
         super(state);
     }
 

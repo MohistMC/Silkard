@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.features.TreeFeatures;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.Mob;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChorusFlowerBlock;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.portal.TeleportTransition;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -195,7 +197,7 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
     }
 
     public boolean generateTree(WorldGenLevel access, ChunkGenerator chunkGenerator, BlockPos pos, RandomSource random, TreeType treeType) {
-        net.minecraft.resources.ResourceKey<net.minecraft.world.level.levelgen.feature.Feature> gen;
+        ResourceKey<Feature> gen;
         switch (treeType) {
             case BIG_TREE:
                 gen = TreeFeatures.FANCY_OAK;
@@ -278,8 +280,8 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
                 break;
         }
 
-        var holder = access.registryAccess().lookupOrThrow(Registries.FEATURE).getOptional(gen);
-        return holder.map(feature -> feature.place(access, chunkGenerator, random, pos)).orElse(false);
+        Holder<Feature> holder = access.registryAccess().lookupOrThrow(Registries.FEATURE).get(gen).orElse(null);
+        return (holder != null) ? holder.value().place(access, chunkGenerator, random, pos) : false;
     }
 
     @Override

@@ -45,6 +45,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.entity.JigsawBlockEntity;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.block.entity.PotentSulfurBlockEntity;
 import net.minecraft.world.level.block.entity.SculkCatalystBlockEntity;
 import net.minecraft.world.level.block.entity.SculkSensorBlockEntity;
 import net.minecraft.world.level.block.entity.SculkShriekerBlockEntity;
@@ -156,6 +157,8 @@ public final class CraftBlockStates {
                         Material.OAK_WALL_SIGN,
                         Material.PALE_OAK_SIGN,
                         Material.PALE_OAK_WALL_SIGN,
+                        Material.POPLAR_SIGN,
+                        Material.POPLAR_WALL_SIGN,
                         Material.SPRUCE_SIGN,
                         Material.SPRUCE_WALL_SIGN,
                         Material.WARPED_SIGN,
@@ -185,6 +188,8 @@ public final class CraftBlockStates {
                         Material.OAK_WALL_HANGING_SIGN,
                         Material.PALE_OAK_HANGING_SIGN,
                         Material.PALE_OAK_WALL_HANGING_SIGN,
+                        Material.POPLAR_HANGING_SIGN,
+                        Material.POPLAR_WALL_HANGING_SIGN,
                         Material.SPRUCE_HANGING_SIGN,
                         Material.SPRUCE_WALL_HANGING_SIGN,
                         Material.WARPED_HANGING_SIGN,
@@ -304,6 +309,7 @@ public final class CraftBlockStates {
                         Material.MANGROVE_SHELF,
                         Material.OAK_SHELF,
                         Material.PALE_OAK_SHELF,
+                        Material.POPLAR_SHELF,
                         Material.SPRUCE_SHELF,
                         Material.WARPED_SHELF
                 ), CraftShelf.class, CraftShelf::new, ShelfBlockEntity::new
@@ -372,6 +378,7 @@ public final class CraftBlockStates {
         register(Material.VAULT, CraftVault.class, CraftVault::new, VaultBlockEntity::new);
         register(Material.TEST_BLOCK, CraftTestBlock.class, CraftTestBlock::new, TestBlockEntity::new);
         register(Material.TEST_INSTANCE_BLOCK, CraftTestInstance.class, CraftTestInstance::new, TestInstanceBlockEntity::new);
+        register(Material.POTENT_SULFUR, CraftPotentSulfurBlock.class, CraftPotentSulfurBlock::new, PotentSulfurBlockEntity::new);
     }
 
     private static void register(Material blockType, BlockStateFactory<?> factory) {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -124,6 +125,33 @@ public class CraftConsumableComponent implements ConsumableComponent {
         handle = new Consumable(this.handle.consumeSeconds(), this.handle.animation(), this.handle.sound(), this.handle.hasConsumeParticles(), effects);
 
         return consumableEffect;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.handle);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CraftConsumableComponent other = (CraftConsumableComponent) obj;
+        return Objects.equals(this.handle, other.handle);
+    }
+
+    @Override
+    public String toString() {
+        return "CraftConsumableComponent{" + "handle=" + handle + '}';
     }
 
     public static class CraftAnimation {

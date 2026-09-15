@@ -49,6 +49,16 @@ public class CraftAdvancementDisplay implements org.bukkit.advancement.Advanceme
     }
 
     @Override
+    public float getX() {
+        return 0.0F;
+    }
+
+    @Override
+    public float getY() {
+        return 0.0F;
+    }
+
+    @Override
     public AdvancementDisplayType getType() {
         return AdvancementDisplayType.values()[handle.type().ordinal()];
     }

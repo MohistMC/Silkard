@@ -15,7 +15,7 @@ import org.bukkit.craftbukkit.block.CraftBiome;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.WorldInfo;
 
-public class CustomWorldChunkManager extends BiomeSource implements BiomeResolver {
+public class CustomWorldChunkManager extends BiomeSource {
 
     private final WorldInfo worldInfo;
     private final BiomeProvider biomeProvider;
@@ -44,20 +44,17 @@ public class CustomWorldChunkManager extends BiomeSource implements BiomeResolve
     }
 
     @Override
-    public Holder<Biome> getNoiseBiome(int x, int y, int z) {
-        org.bukkit.block.Biome biome = biomeProvider.getBiome(worldInfo, x << 2, y << 2, z << 2);
-        Preconditions.checkArgument(biome != org.bukkit.block.Biome.CUSTOM, "Cannot set the biome to %s", biome);
+    public BiomeResolver createResolver(Climate.Sampler sampler) {
+        return (int x, int y, int z) -> {
+            org.bukkit.block.Biome biome = biomeProvider.getBiome(worldInfo, x << 2, y << 2, z << 2, CraftBiomeParameterPoint.createBiomeParameterPoint(sampler, sampler.sample(x, y, z)));
+            Preconditions.checkArgument(biome != org.bukkit.block.Biome.CUSTOM, "Cannot set the biome to %s", biome);
 
-        return CraftBiome.bukkitToMinecraftHolder(biome);
+            return CraftBiome.bukkitToMinecraftHolder(biome);
+        };
     }
 
     @Override
     protected Stream<Holder<Biome>> collectPossibleBiomes() {
         return biomeListToBiomeBaseList(biomeProvider.getBiomes(worldInfo), registry).stream();
-    }
-
-    @Override
-    public BiomeResolver createResolver(Climate.Sampler sampler) {
-        return this;
     }
 }

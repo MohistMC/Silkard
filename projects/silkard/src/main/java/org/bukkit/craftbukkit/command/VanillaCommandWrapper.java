@@ -94,7 +94,11 @@ public final class VanillaCommandWrapper extends BukkitCommand {
     }
 
     public static String getPermission(CommandNode<CommandSourceStack> vanillaCommand) {
-        return "minecraft.command." + ((vanillaCommand.getRedirect() == null) ? vanillaCommand.getName() : vanillaCommand.getRedirect().getName());
+        // SPIGOT-8134: Check command redirects to prevent command aliases from getting their own permission node.
+        while (vanillaCommand.getRedirect() != null) {
+            vanillaCommand = vanillaCommand.getRedirect();
+        }
+        return "minecraft.command." + vanillaCommand.getName();
     }
 
     private String toDispatcher(String[] args, String name) {

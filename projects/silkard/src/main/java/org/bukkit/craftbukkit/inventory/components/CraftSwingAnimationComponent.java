@@ -3,6 +3,7 @@ package org.bukkit.craftbukkit.inventory.components;
 import com.google.common.base.Preconditions;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import net.minecraft.world.item.SwingAnimationType;
 import net.minecraft.world.item.component.SwingAnimation;
 import org.bukkit.configuration.serialization.SerializableAs;
@@ -63,6 +64,33 @@ public class CraftSwingAnimationComponent implements SwingAnimationComponent {
     @Override
     public void setDuration(int ticks) {
         handle = new SwingAnimation(handle.type(), ticks);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 79 * hash + Objects.hashCode(this.handle);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CraftSwingAnimationComponent other = (CraftSwingAnimationComponent) obj;
+        return Objects.equals(this.handle, other.handle);
+    }
+
+    @Override
+    public String toString() {
+        return "CraftSwingAnimationComponent{" + "handle=" + handle + '}';
     }
 
     public static class CraftSwingAnimationType {

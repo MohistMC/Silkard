@@ -58,7 +58,7 @@ public class CraftMetaSpawnEgg extends CraftMetaItem implements SpawnEggMeta {
             // Tag still has some other data, lets try our luck with a conversion
             if (!entityTag.isEmpty()) {
                 // SPIGOT-4128: This is hopeless until we start versioning stacks. RIP data.
-                // entityTag = (NBTTagCompound) BukkitUtils.getServer().dataConverterManager.update(DataConverterTypes.ENTITY, new Dynamic(DynamicOpsNBT.a, entityTag), -1, CraftMagicNumbers.DATA_VERSION).getValue();
+                // entityTag = (NBTTagCompound) MinecraftServer.getServer().dataConverterManager.update(DataConverterTypes.ENTITY, new Dynamic(DynamicOpsNBT.a, entityTag), -1, CraftMagicNumbers.DATA_VERSION).getValue();
             }
         });
     }

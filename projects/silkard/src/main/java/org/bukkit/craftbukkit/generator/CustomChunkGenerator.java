@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
@@ -24,14 +23,12 @@ import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.CarvingMask;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.RandomState;
-import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
@@ -43,11 +40,8 @@ import org.bukkit.craftbukkit.util.RandomSourceWrapper;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
-import org.jspecify.annotations.Nullable;
 
 public class CustomChunkGenerator extends InternalChunkGenerator {
-
-    private static final long INITIAL_SEED = 0;
 
     private final net.minecraft.world.level.chunk.ChunkGenerator delegate;
     private final ChunkGenerator generator;
@@ -132,19 +126,17 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
         }
     }
 
-    // TODO - snapshot - this was moved into NoiseChunkGenerator so...
-    public void buildSurface(WorldGenRegion level, StructureManager structureManager, RandomState randomState, ChunkAccess protoChunk) {
+    public void buildSurface(StructureManager structuremanager, RandomState randomstate, ChunkAccess chunkaccess, BiomeManager biomeManager, Blender blender, Set<Holder<net.minecraft.world.level.biome.Biome>> possibleBiomes) {
         WorldgenRandom random = getSeededRandom();
-        int x = protoChunk.getPos().x();
-        int z = protoChunk.getPos().z();
+        int x = chunkaccess.getPos().x();
+        int z = chunkaccess.getPos().z();
 
         random.setSeed(Mth.getSeed(x, "should-surface".hashCode(), z) ^ world.getSeed());
         if (generator.shouldGenerateSurface(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
-            // TODO - snapshot
-            //this.delegate.buildSurface(level, structureManager, randomState, protoChunk);
+            // delegate.buildSurface(structuremanager, randomstate, chunkaccess, biomeManager, blender, possibleBiomes);
         }
 
-        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), protoChunk);
+        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkaccess);
 
         random.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
         generator.generateSurface(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
@@ -170,7 +162,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
         this.random.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
 
         // Get default biome data for chunk
-        CustomBiomeGrid biomegrid = new CustomBiomeGrid(protoChunk);
+        CustomBiomeGrid biomegrid = new CustomBiomeGrid(chunkaccess);
 
         ChunkData data;
         try {
@@ -190,7 +182,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
         OldCraftChunkData craftData = (OldCraftChunkData) data;
         LevelChunkSection[] sections = craftData.getRawChunkData();
 
-        LevelChunkSection[] csect = protoChunk.getSections();
+        LevelChunkSection[] csect = chunkaccess.getSections();
         int scnt = Math.min(csect.length, sections.length);
 
         // Loop through returned sections
@@ -223,64 +215,57 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
 
                 if (block.hasBlockEntity()) {
                     BlockEntity tile = ((EntityBlock) block.getBlock()).newBlockEntity(new BlockPos((x << 4) + tx, ty, (z << 4) + tz), block);
-                    protoChunk.setBlockEntity(tile);
+                    chunkaccess.setBlockEntity(tile);
                 }
             }
         }
     }
 
-    // TODO - snapshot - this no longer exists?
-    public void applyCarvers(WorldGenRegion region, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk) {
+    public void applyCarvers(WorldGenRegion worldgenregion, RandomState randomstate, BiomeManager biomemanager, StructureManager structuremanager, ChunkAccess chunkaccess, Blender blender) {
         WorldgenRandom random = getSeededRandom();
-        int x = chunk.getPos().x();
-        int z = chunk.getPos().z();
+        int x = chunkaccess.getPos().x();
+        int z = chunkaccess.getPos().z();
 
-        random.setSeed(Mth.getSeed(x, "should-caves".hashCode(), z) ^ region.getSeed());
-        if (this.generator.shouldGenerateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
-            // TODO - snapshot
-            //this.delegate.applyCarvers(region, seed, randomState, biomeManager, structureManager, chunk);
+        random.setSeed(Mth.getSeed(x, "should-caves".hashCode(), z) ^ worldgenregion.getSeed());
+        if (generator.shouldGenerateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
+            // delegate.applyCarvers(worldgenregion, randomstate, biomemanager, structuremanager, chunkaccess, blender);
         }
 
         // Minecraft removed the LIQUID_CARVERS stage from world generation, without removing the LIQUID Carving enum.
         // Meaning this method is only called once for each chunk, so no check is required.
-        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunk);
-        random.setDecorationSeed(seed, 0, 0);
+        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkaccess);
+        random.setDecorationSeed(worldgenregion.getSeed(), 0, 0);
 
-        this.generator.generateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
+        generator.generateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
         chunkData.breakLink();
     }
 
-
     @Override
-    public CompletableFuture<ChunkAccess> buildTerrain(
-            final ChunkAccess chunk,
-            final Blender blender,
-            final RandomState randomState,
-            final StructureManager structureManager,
-            final BiomeManager biomeManager,
-            final @Nullable WorldGenRegion carverBiomeRegion,
-            final Set<Holder<net.minecraft.world.level.biome.Biome>> possibleBiomes
-    ) {
+    public CompletableFuture<ChunkAccess> buildTerrain(ChunkAccess chunkaccess, Blender blender, RandomState randomstate, StructureManager structuremanager, BiomeManager biomeManager, WorldGenRegion carverBiomeRegion, Set<Holder<net.minecraft.world.level.biome.Biome>> possibleBiomes) {
         CompletableFuture<ChunkAccess> future = null;
         WorldgenRandom random = getSeededRandom();
-        int x = chunk.getPos().x();
-        int z = chunk.getPos().z();
+        int x = chunkaccess.getPos().x();
+        int z = chunkaccess.getPos().z();
 
-        random.setSeed(Mth.getSeed(x, "should-noise".hashCode(), z) ^ this.world.getSeed());
-        if (this.generator.shouldGenerateNoise(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
-            future = this.delegate.buildTerrain(chunk, blender, randomState, structureManager, biomeManager, carverBiomeRegion, possibleBiomes);
+        random.setSeed(Mth.getSeed(x, "should-surface".hashCode(), z) ^ world.getSeed());
+        if (generator.shouldGenerateSurface(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
+            future = delegate.buildTerrain(chunkaccess, blender, randomstate, structuremanager, biomeManager, carverBiomeRegion, possibleBiomes);
         }
 
-        Function<ChunkAccess, ChunkAccess> work = chunkAccess -> {
-            CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkAccess);
-            random.setLargeFeatureWithSalt(INITIAL_SEED, x, z, 0);
+        java.util.function.Function<ChunkAccess, ChunkAccess> function = (chunkaccess1) -> {
+            CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkaccess1);
+            random.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
 
-            this.generator.generateNoise(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
+            generator.generateNoise(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
             chunkData.breakLink();
-            return chunkAccess;
+
+            buildSurface(structuremanager, randomstate, chunkaccess, biomeManager, blender, possibleBiomes);
+            applyCarvers(carverBiomeRegion, randomstate, biomeManager, structuremanager, chunkaccess, blender);
+
+            return chunkaccess1;
         };
 
-        return future == null ? CompletableFuture.supplyAsync(() -> work.apply(chunk), net.minecraft.util.Util.backgroundExecutor()) : future.thenApply(work);
+        return future == null ? CompletableFuture.supplyAsync(() -> function.apply(chunkaccess), net.minecraft.util.Util.backgroundExecutor()) : future.thenApply(function);
     }
 
     @Override
@@ -312,8 +297,8 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
     }
 
     @Override
-    public void addDebugScreenInfo(List<String> result, RandomState randomState, BlockPos feetPos, SamplerContext samplerContext) {
-        this.delegate.addDebugScreenInfo(result, randomState, feetPos, samplerContext);
+    public void addDebugScreenInfo(List<String> list, RandomState randomstate, BlockPos blockpos, SamplerContext samplercontext) {
+        delegate.addDebugScreenInfo(list, randomstate, blockpos, samplercontext);
     }
 
     @Override

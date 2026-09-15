@@ -86,6 +86,10 @@ public final class DamageTypeTags {
      */
     public static final Tag<DamageType> NO_ANGER = getTag("no_anger");
     /**
+     * Vanilla tag representing damage types which do not cause wolves to defend their owner.
+     */
+    public static final Tag<DamageType> NO_WOLF_RETALIATION = getTag("no_wolf_retaliation");
+    /**
      * Vanilla tag representing damage types which do not cause an impact.
      */
     public static final Tag<DamageType> NO_IMPACT = getTag("no_impact");
@@ -97,6 +101,10 @@ public final class DamageTypeTags {
      * Vanilla tag representing damage types which withers are immune to.
      */
     public static final Tag<DamageType> WITHER_IMMUNE_TO = getTag("wither_immune_to");
+    /**
+     * Vanilla tag representing damage types types which sulfur cubes with block absorbed are immune to.
+     */
+    public static final Tag<DamageType> SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO = getTag("sulfur_cube_with_block_immune_to");
     /**
      * Vanilla tag representing damage types which ignite armor stands.
      */

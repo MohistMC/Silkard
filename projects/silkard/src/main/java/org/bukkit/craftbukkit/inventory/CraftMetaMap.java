@@ -27,7 +27,6 @@ class CraftMetaMap extends CraftMetaItem implements MapMeta {
 
     private Integer mapId;
     private byte scaling = SCALING_EMPTY;
-    private Color color;
 
     CraftMetaMap(CraftMetaItem meta) {
         super(meta);
@@ -39,7 +38,6 @@ class CraftMetaMap extends CraftMetaItem implements MapMeta {
         CraftMetaMap map = (CraftMetaMap) meta;
         this.mapId = map.mapId;
         this.scaling = map.scaling;
-        this.color = map.color;
     }
 
     CraftMetaMap(DataComponentPatch tag) {
@@ -92,7 +90,7 @@ class CraftMetaMap extends CraftMetaItem implements MapMeta {
     }
 
     boolean isMapEmpty() {
-        return !(hasMapId() || hasScaling() | hasLocationName());
+        return !(hasMapId() || hasScaling() | hasLocationName() || hasColor());
     }
 
     @Override
@@ -153,6 +151,20 @@ class CraftMetaMap extends CraftMetaItem implements MapMeta {
     @Override
     public void setLocationName(String name) {
         this.setLocalizedName(name); // SPIGOT-6308
+    }
+
+    @Override
+    public boolean hasColor() {
+        return false;
+    }
+
+    @Override
+    public Color getColor() {
+        return null;
+    }
+
+    @Override
+    public void setColor(Color color) {
     }
 
     @Override

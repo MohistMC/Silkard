@@ -830,15 +830,13 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
         Component[] components = CraftSign.sanitizeLines(lines);
         SignBlockEntity sign = new SignBlockEntity(CraftLocation.toBlockPosition(loc), Blocks.OAK_SIGN.defaultBlockState());
-
-        SignTextSlot slot = sign.getSlotPlayerIsFacing(getHandle());
-        SignText.Mutable text = sign.getText(slot).asMutable();
-        text.setColor(net.minecraft.world.item.DyeColor.byId(dyeColor.getWoolData()));
-        text.setTextGlowing(hasGlowingText);
+        SignText.Mutable text = sign.getText(SignTextSlot.FRONT).asMutable();
+        text = text.setColor(net.minecraft.world.item.DyeColor.byId(dyeColor.getWoolData()));
+        text = text.setTextGlowing(hasGlowingText);
         for (int i = 0; i < components.length; i++) {
-            text.setLine(i, components[i]);
+            text = text.setLine(i, components[i]);
         }
-        sign.setText(text.asImmutable(), slot);
+        sign.setText(text.asImmutable(), SignTextSlot.FRONT);
 
         getHandle().connection.send(new ClientboundBlockEntityDataPacket(sign.getBlockPos(), sign.getType(), sign.getUpdateTag(getHandle().registryAccess())));
     }
@@ -1178,7 +1176,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
         BlockPos bed = respawnConfig.respawnData().pos();
 
         if (world != null && bed != null) {
-            Optional<ServerPlayer.RespawnPosAngle> spawnLoc = ServerPlayer.findRespawnAndUseSpawnBlock(world, respawnConfig, true);
+            Optional<ServerPlayer.RespawnPosAngle> spawnLoc = ServerPlayer.findRespawnAndUseSpawnBlock(world, respawnConfig, false);
             if (spawnLoc.isPresent()) {
                 ServerPlayer.RespawnPosAngle vec = spawnLoc.get();
                 return CraftLocation.toBukkit(vec.position(), world.getWorld(), vec.yaw(), vec.pitch());
@@ -1334,8 +1332,12 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
     @Override
     public void setPlayerTime(long time, boolean relative) {
+		ServerPlayer player = getHandle();
         getHandle().silkard$timeOffset(time);
         getHandle().silkard$relativeTime(relative);
+		if (player.connection != null) {
+            player.connection.send(player.level().clockManager().createFullSyncPacket()); // TODO
+        }
     }
 
     @Override
@@ -2324,7 +2326,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
     public void updateCommands() {
         if (getHandle().connection == null) return;
 
-        getHandle().server.getCommands().sendCommands(getHandle());
+        getHandle().server.getPlayerList().sendPlayerPermissionLevel(getHandle());
     }
 
     @Override

@@ -25,6 +25,7 @@ import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.block.AbstractBedBlock;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -147,11 +148,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
 
         BlockPos blockpos = CraftLocation.toBlockPosition(location);
         BlockState blockstate = getHandle().level().getBlockState(blockpos);
-        if (!(blockstate.getBlock() instanceof BedBlock)) {
+        if (!(blockstate.getBlock() instanceof AbstractBedBlock bed)) {
             return false;
         }
 
-        if (getHandle().startSleepInBed(blockpos, force).left().isPresent()) {
+        if (getHandle().startSleepInBed(bed, blockstate, bed.getBedRule(getHandle().level(), blockpos), blockpos).left().isPresent()) { //TODO
             return false;
         }
 
@@ -568,7 +569,10 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
 
     @Override
     public int undiscoverRecipes(Collection<NamespacedKey> recipes) {
-        return ((ServerPlayer) getHandle()).resetRecipes(bukkitKeysToMinecraftRecipes(recipes));
+        if (!(getHandle() instanceof ServerPlayer handle)) {
+            return 0;
+        }
+        return handle.resetRecipes(bukkitKeysToMinecraftRecipes(recipes));
     }
 
     @Override

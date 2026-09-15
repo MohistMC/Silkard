@@ -11,6 +11,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ShelfBlock;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.SignBlock;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.AxolotlBucketMeta;
@@ -230,7 +231,7 @@ public final class CraftItemMetas {
         if (itemType == ItemType.FURNACE || itemType == ItemType.CHEST
                 || itemType == ItemType.TRAPPED_CHEST || itemType == ItemType.JUKEBOX
                 || itemType == ItemType.DISPENSER || itemType == ItemType.DROPPER
-                || itemType == ItemType.SPAWNER
+                || blockHandle instanceof SignBlock || itemType == ItemType.SPAWNER
                 || itemType == ItemType.BREWING_STAND || itemType == ItemType.ENCHANTING_TABLE
                 || itemType == ItemType.COMMAND_BLOCK || itemType == ItemType.REPEATING_COMMAND_BLOCK
                 || itemType == ItemType.CHAIN_COMMAND_BLOCK || itemType == ItemType.BEACON
@@ -248,7 +249,7 @@ public final class CraftItemMetas {
                 || itemType == ItemType.DECORATED_POT || itemType == ItemType.SUSPICIOUS_SAND
                 || itemType == ItemType.SUSPICIOUS_GRAVEL || itemType == ItemType.CRAFTER
                 || itemType == ItemType.TRIAL_SPAWNER || itemType == ItemType.VAULT
-                || itemType == ItemType.CREAKING_HEART || itemType == ItemType.TEST_BLOCK || itemType == ItemType.TEST_INSTANCE_BLOCK
+                || itemType == ItemType.CREAKING_HEART || itemType == ItemType.TEST_BLOCK || itemType == ItemType.TEST_INSTANCE_BLOCK || itemType == ItemType.POTENT_SULFUR
                 || blockHandle instanceof ShelfBlock) {
             return asType(BLOCK_STATE_META_DATA);
         }

@@ -58,6 +58,8 @@ import org.bukkit.craftbukkit.entity.boat.CraftOakBoat;
 import org.bukkit.craftbukkit.entity.boat.CraftOakChestBoat;
 import org.bukkit.craftbukkit.entity.boat.CraftPaleOakBoat;
 import org.bukkit.craftbukkit.entity.boat.CraftPaleOakChestBoat;
+import org.bukkit.craftbukkit.entity.boat.CraftPoplarBoat;
+import org.bukkit.craftbukkit.entity.boat.CraftPoplarChestBoat;
 import org.bukkit.craftbukkit.entity.boat.CraftSpruceBoat;
 import org.bukkit.craftbukkit.entity.boat.CraftSpruceChestBoat;
 import org.bukkit.entity.Allay;
@@ -83,6 +85,7 @@ import org.bukkit.entity.CopperGolem;
 import org.bukkit.entity.Cow;
 import org.bukkit.entity.Creaking;
 import org.bukkit.entity.Creeper;
+import org.bukkit.entity.Cushion;
 import org.bukkit.entity.Dolphin;
 import org.bukkit.entity.Donkey;
 import org.bukkit.entity.DragonFireball;
@@ -168,6 +171,7 @@ import org.bukkit.entity.SplashPotion;
 import org.bukkit.entity.Squid;
 import org.bukkit.entity.Stray;
 import org.bukkit.entity.Strider;
+import org.bukkit.entity.SulfurCube;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.entity.Tadpole;
 import org.bukkit.entity.TextDisplay;
@@ -210,6 +214,8 @@ import org.bukkit.entity.boat.OakBoat;
 import org.bukkit.entity.boat.OakChestBoat;
 import org.bukkit.entity.boat.PaleOakBoat;
 import org.bukkit.entity.boat.PaleOakChestBoat;
+import org.bukkit.entity.boat.PoplarBoat;
+import org.bukkit.entity.boat.PoplarChestBoat;
 import org.bukkit.entity.boat.SpruceBoat;
 import org.bukkit.entity.boat.SpruceChestBoat;
 import org.bukkit.entity.minecart.CommandMinecart;
@@ -301,6 +307,7 @@ public final class CraftEntityTypes {
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.SILVERFISH, Silverfish.class, CraftSilverfish::new, createLiving(EntityTypes.SILVERFISH)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.BLAZE, Blaze.class, CraftBlaze::new, createLiving(EntityTypes.BLAZE)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.MAGMA_CUBE, MagmaCube.class, CraftMagmaCube::new, createLiving(EntityTypes.MAGMA_CUBE)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.SULFUR_CUBE, SulfurCube.class, CraftSulfurCube::new, createLiving(EntityTypes.SULFUR_CUBE)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.WITHER, Wither.class, CraftWither::new, createLiving(EntityTypes.WITHER)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.BAT, Bat.class, CraftBat::new, createLiving(EntityTypes.BAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.WITCH, Witch.class, CraftWitch::new, createLiving(EntityTypes.WITCH)));
@@ -423,6 +430,8 @@ public final class CraftEntityTypes {
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.OAK_CHEST_BOAT, OakChestBoat.class, CraftOakChestBoat::new, createAndMove(EntityTypes.OAK_CHEST_BOAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.PALE_OAK_BOAT, PaleOakBoat.class, CraftPaleOakBoat::new, createAndMove(EntityTypes.PALE_OAK_BOAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.PALE_OAK_CHEST_BOAT, PaleOakChestBoat.class, CraftPaleOakChestBoat::new, createAndMove(EntityTypes.PALE_OAK_CHEST_BOAT)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.POPLAR_BOAT, PoplarBoat.class, CraftPoplarBoat::new, createAndMove(EntityTypes.POPLAR_BOAT)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.POPLAR_CHEST_BOAT, PoplarChestBoat.class, CraftPoplarChestBoat::new, createAndMove(EntityTypes.POPLAR_CHEST_BOAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.SPRUCE_BOAT, SpruceBoat.class, CraftSpruceBoat::new, createAndMove(EntityTypes.SPRUCE_BOAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.SPRUCE_CHEST_BOAT, SpruceChestBoat.class, CraftSpruceChestBoat::new, createAndMove(EntityTypes.SPRUCE_CHEST_BOAT)));
 
@@ -432,6 +441,7 @@ public final class CraftEntityTypes {
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.INTERACTION, Interaction.class, CraftInteraction::new, createAndSetPos(EntityTypes.INTERACTION)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.ITEM_DISPLAY, ItemDisplay.class, CraftItemDisplay::new, createAndSetPos(EntityTypes.ITEM_DISPLAY)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.TEXT_DISPLAY, TextDisplay.class, CraftTextDisplay::new, createAndSetPos(EntityTypes.TEXT_DISPLAY)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.CUSHION, Cushion.class, CraftCushion::new, createAndSetPos(EntityTypes.CUSHION)));
 
         // MISC
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.ITEM, Item.class, CraftItem::new, spawnData -> {

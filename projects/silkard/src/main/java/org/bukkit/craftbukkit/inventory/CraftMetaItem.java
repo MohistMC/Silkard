@@ -601,15 +601,12 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
             }
         });
 
-        for (Map.Entry<DataComponentType<?>, Object> key : tag.map.entrySet()) {
-            if (!getHandledTags().contains(key.getKey())) {
-                if (!Removed.isRemoved(key.getValue())) {
-                    unhandledTags.set((DataComponentType) key.getKey(), key.getValue());
-                }
-            }
-
+        Set<Map.Entry<DataComponentType<?>, Object>> keys = tag.map.entrySet();
+        for (Map.Entry<DataComponentType<?>, Object> key : keys) {
             if (Removed.isRemoved(key.getValue())) {
                 removedTags.add(key.getKey());
+            } else if (!getHandledTags().contains(key.getKey())) {
+                unhandledTags.set((DataComponentType) key.getKey(), key.getValue());
             }
         }
     }
@@ -899,7 +896,7 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
                 DataComponentPatch unhandledPatch = DataComponentPatch.CODEC.parse(BukkitUtils.getDefaultRegistryAccess().createSerializationContext(NbtOps.INSTANCE), unhandledTag).result().get();
                 this.unhandledTags.copy(unhandledPatch);
 
-                for (Map.Entry<DataComponentType<?>, Object> entry : unhandledPatch.map.entrySet()) {
+                for (Entry<DataComponentType<?>, Object> entry : unhandledPatch.map.entrySet()) {
                     // Move removed unhandled tags to dedicated removedTags
                     if (Removed.isRemoved(entry.getValue())) {
                         DataComponentType<?> key = entry.getKey();
@@ -2120,7 +2117,7 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
         net.minecraft.core.Registry<DataComponentType<?>> componentTypeRegistry = registryAccess.lookupOrThrow(Registries.DATA_COMPONENT_TYPE);
 
         StringJoiner componentString = new StringJoiner(",", "[", "]");
-        for (Map.Entry<DataComponentType<?>, Object> entry : patch.map.entrySet()) {
+        for (Entry<DataComponentType<?>, Object> entry : patch.map.entrySet()) {
             DataComponentType<?> componentType = entry.getKey();
             Object componentValue = entry.getValue();
             String componentKey = componentTypeRegistry.getResourceKey(componentType).orElseThrow().identifier().toString();

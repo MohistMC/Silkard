@@ -174,6 +174,12 @@ public class CraftItemType<M extends ItemMeta> extends CraftRegistryItem<Item> i
     }
 
     @Override
+    public float getCompostChance() {
+        Preconditions.checkArgument(isCompostable(), "The item type " + (isRegistered() ? getKeyOrThrow() : toString()) + " is not compostable");
+        return 1.0F;
+    }
+
+    @Override
     public ItemType getCraftingRemainingItem() {
         net.minecraft.world.item.ItemStackTemplate expectedItem = getHandle().getCraftingRemainder();
         return expectedItem == null ? null : minecraftToBukkitNew(expectedItem.item().value());

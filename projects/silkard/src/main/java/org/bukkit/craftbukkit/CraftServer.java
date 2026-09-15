@@ -1208,7 +1208,7 @@ public final class CraftServer implements Server {
 
         try {
             if (save) {
-                handle.save(null, true, true);
+                handle.save(null, true, false);
             }
 
             handle.getChunkSource().close(save);

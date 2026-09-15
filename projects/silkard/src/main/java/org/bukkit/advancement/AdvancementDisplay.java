@@ -59,6 +59,24 @@ public interface AdvancementDisplay {
     boolean isHidden();
 
     /**
+     * The X position of the advancement in the advancement screen.
+     *
+     * @return the X coordinate as float
+     * @deprecated field no longer exists
+     */
+    @Deprecated(since = "26.3")
+    float getX();
+
+    /**
+     * The Y position of the advancement in the advancement screen.
+     *
+     * @return the Y coordinate as float
+     * @deprecated field no longer exists
+     */
+    @Deprecated(since = "26.3")
+    float getY();
+
+    /**
      * The display type of this advancement.
      *
      * @return an enum representing the type.

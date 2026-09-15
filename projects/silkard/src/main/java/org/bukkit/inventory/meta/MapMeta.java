@@ -47,7 +47,7 @@ public interface MapMeta extends ItemMeta {
      * Sets the map ID. This is used to determine what map is displayed.
      *
      * @param id the map id to set
-     * @see #setMapView(MapView)
+     * @see #setMapView(org.bukkit.map.MapView)
      * @deprecated These methods are poor API: They rely on the caller to pass
      * in an only an integer property, and have poorly defined implementation
      * behavior if that integer is not a valid map (the current implementation
@@ -136,6 +136,39 @@ public interface MapMeta extends ItemMeta {
      */
     @Deprecated(since = "1.19.4")
     void setLocationName(@Nullable String name);
+
+    /**
+     * Checks for existence of a map color.
+     *
+     * @return true if this has a custom map color
+     * @deprecated maps no longer have a color tint
+     */
+    @Deprecated(since = "26.3")
+    boolean hasColor();
+
+    /**
+     * Gets the map color that is set. A custom map color will alter the display
+     * of the map in an inventory slot.
+     * <p>
+     * Plugins should check that hasColor() returns <code>true</code> before
+     * calling this method.
+     *
+     * @return the map color that is set
+     * @deprecated maps no longer have a color tint
+     */
+    @Nullable
+    @Deprecated(since = "26.3")
+    Color getColor();
+
+    /**
+     * Sets the map color. A custom map color will alter the display of the map
+     * in an inventory slot.
+     *
+     * @param color the color to set
+     * @deprecated maps no longer have a color tint
+     */
+    @Deprecated(since = "26.3")
+    void setColor(@Nullable Color color);
 
     @Override
     @NotNull

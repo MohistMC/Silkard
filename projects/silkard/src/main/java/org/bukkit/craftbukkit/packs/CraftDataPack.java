@@ -3,7 +3,7 @@ package org.bukkit.craftbukkit.packs;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
-import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackMetadataResources;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -23,7 +23,7 @@ public class CraftDataPack implements DataPack {
 
     public CraftDataPack(Pack handler) {
         this.handle = handler;
-        try (var packresources = this.handle.resources.openMetadata(this.handle.location())) {
+        try (PackMetadataResources packresources = this.handle.resources.openMetadata(this.handle.location())) {
             PackMetadataSection packmetadatasection = packresources.getMetadataSection(PackMetadataSection.SERVER_TYPE);
 
             if (packmetadatasection == null) {

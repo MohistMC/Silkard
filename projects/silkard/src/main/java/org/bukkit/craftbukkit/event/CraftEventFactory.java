@@ -30,6 +30,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.Unit;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -72,6 +73,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerExplosion;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -293,10 +295,10 @@ public class CraftEventFactory {
     /**
      * PlayerSignOpenEvent
      */
-    public static boolean callPlayerSignOpenEvent(Player player, SignBlockEntity tileEntitySign, boolean front, PlayerSignOpenEvent.Cause cause) {
+    public static boolean callPlayerSignOpenEvent(Player player, SignBlockEntity tileEntitySign, SignTextSlot slot, PlayerSignOpenEvent.Cause cause) {
         final Block block = CraftBlock.at(tileEntitySign.getLevel(), tileEntitySign.getBlockPos());
         final Sign sign = (Sign) CraftBlockStates.getBlockState(block);
-        final Side side = (front) ? Side.FRONT : Side.BACK;
+        final Side side = (slot == SignTextSlot.FRONT) ? Side.FRONT : Side.BACK;
         return callPlayerSignOpenEvent((org.bukkit.entity.Player) player.getBukkitEntity(), sign, side, cause);
     }
 
@@ -313,7 +315,9 @@ public class CraftEventFactory {
      * PlayerBedEnterEvent
      */
     public static Either<Player.BedSleepingProblem, Unit> callPlayerBedEnterEvent(ServerPlayer player, BlockPos bed, Either<Player.BedSleepingProblem, Unit> nmsBedResult) {
-        BedEnterResult bedEnterResult = nmsBedResult.mapBoth(ContextPlayerBedSleepingProblem::bukkit, t -> BedEnterResult.OK).map(java.util.function.Function.identity(), java.util.function.Function.identity());
+        BedEnterResult bedEnterResult = nmsBedResult.mapBoth((t) -> {
+           return t.bukkit();
+        }, t -> BedEnterResult.OK).map(java.util.function.Function.identity(), java.util.function.Function.identity());
 
         PlayerBedEnterEvent event = new PlayerBedEnterEvent(player.getBukkitEntity(), CraftBlock.at(player.level(), bed), bedEnterResult);
         Bukkit.getServer().getPluginManager().callEvent(event);
@@ -905,7 +909,7 @@ public class CraftEventFactory {
             if (stack == null || stack.getType() == Material.AIR) continue;
 
             if (stack instanceof CraftItemStack craftItemStack && craftItemStack.isForInventoryDrop()) {
-                victim.drop(CraftItemStack.asNMSCopy(stack), true, false, false); // SPIGOT-7800, SPIGOT-7801: Vanilla Behaviour for Player Inventory dropped items
+                victim.drop(CraftItemStack.asNMSCopy(stack), true, Prediction.PREDICTED); // SPIGOT-7800, SPIGOT-7801: Vanilla Behaviour for Player Inventory dropped items // TODO
             } else {
                 victim.silkard$forceDrops(true);
                 victim.spawnAtLocation(victim.level(), CraftItemStack.asNMSCopy(stack)); // SPIGOT-7806: Vanilla Behaviour for items not related to Player Inventory dropped items

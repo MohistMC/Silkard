@@ -20,6 +20,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneWireBlock;
+import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -193,7 +194,9 @@ public class CraftBlock implements Block {
 
     public static boolean setTypeAndData(LevelAccessor world, BlockPos position, net.minecraft.world.level.block.state.BlockState old, net.minecraft.world.level.block.state.BlockState blockData, boolean applyPhysics) {
         // SPIGOT-611: need to do this to prevent glitchiness. Easier to handle this here (like /setblock) than to fix weirdness in tile entity cleanup
-        if (old.hasBlockEntity() && blockData.getBlock() != old.getBlock()) { // SPIGOT-3725 remove old tile entity if block changes
+        // SPIGOT-3725 remove old tile entity if block changes.
+        // SPIGOT-8138: check if block should keep changed state to prevent item loss on copper chest oxidization.
+        if (old.hasBlockEntity() && blockData.getBlock() != old.getBlock() && !blockData.shouldChangedStateKeepBlockEntity(old)) {
             // SPIGOT-4612: faster - just clear tile
             if (world instanceof net.minecraft.world.level.Level) {
                 ((net.minecraft.world.level.Level) world).removeBlockEntity(position);
@@ -496,7 +499,7 @@ public class CraftBlock implements Block {
             }
         }
 
-        return result == InteractionResult.SUCCESS && (event == null || !event.isCancelled());
+        return result.consumesAction() && (event == null || !event.isCancelled());
     }
 
     @Override

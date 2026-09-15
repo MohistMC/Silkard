@@ -1294,7 +1294,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     @Override
     public boolean isBedWorks() {
-        return !world.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).canSleep(world);
+        return !world.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).destroyOnUse();
     }
 
     @Override
@@ -1826,8 +1826,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     @Override
     public <T> void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, double extra, T data, boolean force) {
-        getHandle().sendParticlesSource(
-                null, // Sender
+        getHandle().sendParticles(
                 CraftParticle.createParticleParam(particle, data), // Particle
                 force, // force
                 false, // override limiter for render - TODO: Expose this?
