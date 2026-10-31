@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.bukkit.Location;
 import org.bukkit.block.Lectern;
@@ -112,11 +113,17 @@ public class BukkitLecternInventory implements Container {
 
     @Override
     public void setItem(int slot, ItemStack itemStack) {
+        if (slot == 0) {
+            this.lecternBlockEntity.setBook(itemStack);
+            if (this.lecternBlockEntity.getLevel() != null) {
+                LecternBlock.resetBookState(null, this.lecternBlockEntity.getLevel(), this.lecternBlockEntity.getBlockPos(), this.lecternBlockEntity.getBlockState(), this.lecternBlockEntity.hasBook());
+            }
+        }
     }
 
     @Override
     public int getMaxStackSize() {
-        return 1;
+        return this.maxStack;
     }
 
     @Override

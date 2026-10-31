@@ -121,6 +121,11 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         return this.terminal;
     }
     private static int currentTick = (int) (System.currentTimeMillis() / 50);
+
+    @Override
+    public int silkard$currentTick() {
+        return currentTick;
+    }
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
     // Spigot start - recentTps sampler
     @Unique

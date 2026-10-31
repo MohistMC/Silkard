@@ -6,3 +6,4 @@
 /tools/
 /.workbuddy/
 *.txt
+/.tmp-javap/

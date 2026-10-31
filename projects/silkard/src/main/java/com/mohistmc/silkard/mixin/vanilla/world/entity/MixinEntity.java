@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -231,6 +232,26 @@ public abstract class MixinEntity implements ContextEntity {
             }
             // 目标修正（teleEvent.getTo() 与 to 不同时重建 transition）待跨维度簇一并处理
             // CraftBukkit end
+        }
+    }
+    // CraftBukkit end
+
+    // CraftBukkit start - portal handling moved to postTick
+    @Shadow
+    protected abstract void handlePortal();
+
+    @Override
+    public void postTick() {
+        // No clean way to break out of ticking once the entity has been copied to a new world, so instead we move the portalling later in the tick cycle
+        if (!(((Object) this) instanceof net.minecraft.server.level.ServerPlayer)) {
+            this.handlePortal();
+        }
+    }
+
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;handlePortal()V"))
+    private void silkard$handlePortal(Entity self) {
+        if (self instanceof net.minecraft.server.level.ServerPlayer) {
+            this.handlePortal();
         }
     }
     // CraftBukkit end

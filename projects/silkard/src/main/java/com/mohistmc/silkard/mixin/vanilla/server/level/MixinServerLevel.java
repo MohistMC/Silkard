@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.server.level;
 
 import com.mohistmc.silkard.injected.server.level.ContextServerLevel;
+import com.mohistmc.silkard.injected.world.entity.ContextEntity;
 import com.mohistmc.silkard.injected.world.level.saveddata.ContextWeatherData;
 import java.util.UUID;
 import net.minecraft.resources.Identifier;
@@ -33,6 +34,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -170,6 +172,18 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     public void silkard_tickEntityManager() {
         this.entityManager.tick(); // SPIGOT-6526
     }
+
+    // CraftBukkit start - portal handling moved to Entity#postTick
+    @Inject(method = "tickNonPassenger", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V", shift = At.Shift.AFTER))
+    private void silkard$postTick(Entity entity, CallbackInfo ci) {
+        ((ContextEntity) entity).postTick();
+    }
+
+    @Inject(method = "tickPassenger", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;rideTick()V", shift = At.Shift.AFTER))
+    private void silkard$passengerPostTick(Entity vehicle, Entity passenger, CallbackInfo ci) {
+        ((ContextEntity) passenger).postTick();
+    }
+    // CraftBukkit end
 
     // CraftBukkit - 26.3 dropped the SpawnReason overloads: fire the add-entity event here, then delegate to the raw 1-arg add.
     public boolean addFreshEntity(Entity entity, CreatureSpawnEvent.SpawnReason reason) {

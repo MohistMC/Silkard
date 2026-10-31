@@ -17,6 +17,10 @@ public interface ContextAbstractMinecart {
         throw new ContextStateException("Not implemented");
     }
 
+    default Double silkard$maxSpeedOrNull() {
+        throw new ContextStateException("Not implemented");
+    }
+
     default void silkard_maxSpeed(double maxSpeed) {
         throw new ContextStateException("Not implemented");
     }

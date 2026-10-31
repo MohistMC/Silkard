@@ -140,4 +140,8 @@ public interface ContextMinecraftServer {
     default void silkard_autosavePeriod(int autosavePeriod) {
         throw new ContextStateException("Not implemented");
     }
+
+    default int silkard$currentTick() {
+        throw new ContextStateException("Not implemented");
+    }
 }

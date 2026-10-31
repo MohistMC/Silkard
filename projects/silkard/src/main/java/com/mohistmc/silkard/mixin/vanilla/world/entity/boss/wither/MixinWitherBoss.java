@@ -11,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
@@ -38,6 +39,16 @@ public abstract class MixinWitherBoss extends Monster {
         if (!event.isCancelled()) {
             level.explode(entity, x, y, z, event.getRadius(), event.getFire(), interaction);
         }
+    }
+    // CraftBukkit end
+
+    // CraftBukkit start - EntityChangeBlockEvent
+    @Redirect(method = "customServerAiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;destroyBlock(Lnet/minecraft/core/BlockPos;ZLnet/minecraft/world/entity/Entity;)Z"))
+    private boolean silkard$destroyBlock(ServerLevel level, BlockPos pos, boolean drop, Entity entity) {
+        if (!CraftEventFactory.callEntityChangeBlockEvent((WitherBoss) (Object) this, pos, Blocks.AIR.defaultBlockState())) {
+            return false;
+        }
+        return level.destroyBlock(pos, drop, entity);
     }
     // CraftBukkit end
 
