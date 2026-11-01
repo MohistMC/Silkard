@@ -61,6 +61,14 @@ public interface ContextMinecraftServer {
         throw new ContextStateException("Not implemented");
     }
 
+    default void silkard$setRespawnData(net.minecraft.world.level.storage.LevelData.RespawnData respawnData, net.minecraft.server.level.ServerLevel world) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default net.minecraft.server.level.ServerLevel silkard$findRespawnDimension(net.minecraft.server.level.ServerLevel world) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default OptionSet silkard_options() {
         throw new ContextStateException("Not implemented");
     }

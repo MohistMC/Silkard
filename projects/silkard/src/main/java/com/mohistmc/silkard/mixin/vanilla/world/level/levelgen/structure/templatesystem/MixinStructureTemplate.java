@@ -1,11 +1,19 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.levelgen.structure.templatesystem;
 
 import com.mohistmc.silkard.injected.world.level.levelgen.structure.templatesystem.ContextStructureTemplate;
+import java.util.Optional;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.storage.TagValueInput;
 import org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer;
 import org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry;
 import org.spongepowered.asm.mixin.Mixin;
@@ -49,4 +57,11 @@ public class MixinStructureTemplate implements ContextStructureTemplate {
         }
         // CraftBukkit end
     }
+
+    // CraftBukkit start - no swallowed exception
+    @Inject(method = "createEntityIgnoreException", at = @At("HEAD"), cancellable = true)
+    private static void silkard$createEntity(ProblemReporter reporter, ServerLevelAccessor level, CompoundTag tag, CallbackInfoReturnable<Optional<Entity>> cir) {
+        cir.setReturnValue(EntityType.create(TagValueInput.create(reporter, level.registryAccess(), tag), level.getLevel(), new EntitySpawnRequest(EntitySpawnReason.STRUCTURE, false)));
+    }
+    // CraftBukkit end
 }

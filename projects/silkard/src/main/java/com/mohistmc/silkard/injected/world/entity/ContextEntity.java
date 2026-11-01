@@ -204,6 +204,14 @@ public interface ContextEntity extends ContextEntityAccess {
         throw new ContextStateException("Not implemented");
     }
 
+    default boolean silkard$forceDrops() {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default void silkard$forceDrops(boolean forceDrops) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default boolean silkard_pluginRemoved() {
         throw new ContextStateException("Not implemented");
     }

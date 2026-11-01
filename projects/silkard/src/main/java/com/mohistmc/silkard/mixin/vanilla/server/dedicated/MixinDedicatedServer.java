@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 // → extends MinecraftServer 后按 public/protected 继承直接取用。
 // priority 900 < fabric 1000：让 fabric 的 @Redirect 能注入被 @Overwrite 合并的 initServer
 @Mixin(value = DedicatedServer.class, priority = 900)
-public abstract class MixinDedicatedServer extends MinecraftServer implements ContextDedicatedServer {
+public abstract class MixinDedicatedServer extends MinecraftServer implements ContextDedicatedServer, com.mohistmc.silkard.injected.commands.ContextCommandSource {
 
     protected MixinDedicatedServer(Thread thread, net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess levelStorageSource,
                                    net.minecraft.server.packs.repository.PackRepository packRepository, net.minecraft.server.WorldStem worldStem,
@@ -309,5 +309,59 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
         return rconConsoleSource.getCommandResponse();
         // CraftBukkit end
     }
+
+    // CraftBukkit start - plugin list for query
+    @Overwrite
+    public String getPluginNames() {
+        org.bukkit.craftbukkit.CraftServer craftServer = ((ContextMinecraftServer) this.self()).silkard$server();
+        StringBuilder result = new StringBuilder();
+        org.bukkit.plugin.Plugin[] plugins = craftServer.getPluginManager().getPlugins();
+
+        result.append(craftServer.getName());
+        result.append(" on Bukkit ");
+        result.append(craftServer.getBukkitVersion());
+
+        if (plugins.length > 0 && craftServer.getQueryPlugins()) {
+            result.append(": ");
+
+            for (int i = 0; i < plugins.length; i++) {
+                if (i > 0) {
+                    result.append("; ");
+                }
+
+                result.append(plugins[i].getDescription().getName());
+                result.append(" ");
+                result.append(plugins[i].getDescription().getVersion().replaceAll(";", ","));
+            }
+        }
+
+        return result.toString();
+    }
+
+    // CraftBukkit - interrupt the console handler on shutdown
+    @Inject(method = "stopServer", at = @At("TAIL"))
+    private void silkard$stopConsoleThread(CallbackInfo ci) {
+        Thread consoleThread = this.silkard$consoleThreadVar;
+        if (consoleThread != null) {
+            consoleThread.interrupt();
+            try {
+                consoleThread.join(50L);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    // CraftBukkit - code of conduct map must stay mutable
+    @Inject(method = "readCodeOfConducts", at = @At("RETURN"), cancellable = true)
+    private static void silkard$mutableCodeOfConducts(CallbackInfoReturnable<java.util.Map<String, String>> cir) {
+        cir.setReturnValue(new java.util.LinkedHashMap<>(cir.getReturnValue()));
+    }
+
+    @Override
+    public org.bukkit.command.CommandSender getBukkitSender(net.minecraft.commands.CommandSourceStack wrapper) {
+        return ((ContextMinecraftServer) this.self()).silkard_console();
+    }
+    // CraftBukkit end
 
 }

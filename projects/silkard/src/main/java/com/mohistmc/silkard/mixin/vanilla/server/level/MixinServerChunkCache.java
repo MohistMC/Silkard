@@ -40,6 +40,46 @@ public abstract class MixinServerChunkCache implements ContextServerChunkCache {
 
     @Shadow
     @Final
+    private Thread mainThread;
+
+    @Shadow
+    @Final
+    private long[] lastChunkPos;
+
+    @Shadow
+    @Final
+    private net.minecraft.world.level.chunk.status.ChunkStatus[] lastChunkStatus;
+
+    @Shadow
+    @Final
+    private net.minecraft.world.level.chunk.ChunkAccess[] lastChunk;
+
+    @Shadow
+    @Final
+    private net.minecraft.server.level.ServerChunkCache.MainThreadExecutor mainThreadProcessor;
+
+    @Shadow
+    private net.minecraft.server.level.ChunkHolder getVisibleChunkIfPresent(long key) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    private boolean chunkAbsent(net.minecraft.server.level.ChunkHolder holder, int targetTicketLevel) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    private java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> getChunkFutureMainThread(int x, int z, net.minecraft.world.level.chunk.status.ChunkStatus targetStatus, boolean loadOrGenerate) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    private void storeInCache(long pos, net.minecraft.world.level.chunk.ChunkAccess chunk, net.minecraft.world.level.chunk.status.ChunkStatus status) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    @Final
     private net.minecraft.server.level.ThreadedLevelLightEngine lightEngine;
 
     @Shadow
@@ -112,6 +152,9 @@ public abstract class MixinServerChunkCache implements ContextServerChunkCache {
         LevelData leveldata = serverlevel.getLevelData();
         List<MobCategory> list = new ArrayList<>();
 
+        long animalTicks = serverlevel.silkard$ticksPerSpawnCategory().getLong(SpawnCategory.ANIMAL);
+        boolean spawnPersistentNow = animalTicks != 0L && leveldata.getGameTime() % animalTicks == 0L;
+
         for (MobCategory mobcategory : MobCategory.values()) {
             if (mobcategory == MobCategory.MISC) {
                 continue;
@@ -130,7 +173,7 @@ public abstract class MixinServerChunkCache implements ContextServerChunkCache {
                 continue;
             }
 
-            if ((spawnEnemies || mobcategory.isFriendly()) && (spawnPersistent || !mobcategory.isPersistent()) && ((ContextSpawnState) state).canSpawnForCategory(mobcategory, limit)) {
+            if ((spawnEnemies || mobcategory.isFriendly()) && (spawnPersistentNow || !mobcategory.isPersistent()) && ((ContextSpawnState) state).canSpawnForCategory(mobcategory, limit)) {
                 list.add(mobcategory);
             }
         }
@@ -138,4 +181,64 @@ public abstract class MixinServerChunkCache implements ContextServerChunkCache {
         return list;
     }
     // CraftBukkit end
+
+    // CraftBukkit - the cached chunk can become accessible in the meantime
+    @org.spongepowered.asm.mixin.injection.Inject(method = "getChunk", at = @org.spongepowered.asm.mixin.injection.At("HEAD"), cancellable = true)
+    private void silkard$getChunk(int x, int z, net.minecraft.world.level.chunk.status.ChunkStatus targetStatus, boolean loadOrGenerate, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.world.level.chunk.ChunkAccess> cir) {
+        if (Thread.currentThread() != this.mainThread) {
+            return;
+        }
+        Profiler.get().incrementCounter("getChunk");
+        long pos = net.minecraft.world.level.ChunkPos.pack(x, z);
+
+        for (int i = 0; i < 4; i++) {
+            if (pos == this.lastChunkPos[i] && targetStatus == this.lastChunkStatus[i]) {
+                net.minecraft.world.level.chunk.ChunkAccess chunkAccess = this.lastChunk[i];
+                if (chunkAccess != null) {
+                    cir.setReturnValue(chunkAccess);
+                    return;
+                }
+            }
+        }
+
+        Profiler.get().incrementCounter("getChunkCacheMiss");
+        java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> future = this.getChunkFutureMainThread(x, z, targetStatus, loadOrGenerate);
+        this.mainThreadProcessor.managedBlock(future::isDone);
+        net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess> result = future.join();
+        net.minecraft.world.level.chunk.ChunkAccess chunk = result.orElse(null);
+        if (chunk == null && loadOrGenerate) {
+            throw net.minecraft.util.Util.pauseInIde(new IllegalStateException("Chunk not there when requested: " + result.getError()));
+        }
+        this.storeInCache(pos, chunk, targetStatus);
+        cir.setReturnValue(chunk);
+    }
+
+    // CraftBukkit - don't add a new ticket for a currently unloading chunk
+    @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "getChunkFutureMainThread", at = @org.spongepowered.asm.mixin.injection.At("HEAD"), argsOnly = true)
+    private boolean silkard$skipUnloadingTicket(boolean loadOrGenerate, @com.llamalad7.mixinextras.sugar.Local(argsOnly = true, ordinal = 0) int x, @com.llamalad7.mixinextras.sugar.Local(argsOnly = true, ordinal = 1) int z) {
+        net.minecraft.server.level.ChunkHolder holder = this.getVisibleChunkIfPresent(net.minecraft.world.level.ChunkPos.pack(x, z));
+        boolean currentlyUnloading = false;
+        if (holder != null) {
+            net.minecraft.server.level.FullChunkStatus oldState = net.minecraft.server.level.ChunkLevel.fullStatus(holder.oldTicketLevel);
+            net.minecraft.server.level.FullChunkStatus currentState = net.minecraft.server.level.ChunkLevel.fullStatus(holder.getTicketLevel());
+            currentlyUnloading = oldState.isOrAfter(net.minecraft.server.level.FullChunkStatus.FULL) && !currentState.isOrAfter(net.minecraft.server.level.FullChunkStatus.FULL);
+        }
+        return loadOrGenerate && !currentlyUnloading;
+    }
+
+    // CraftBukkit - use oldTicketLevel for isLoaded checks
+    @org.spongepowered.asm.mixin.injection.Redirect(method = "chunkAbsent", at = @org.spongepowered.asm.mixin.injection.At(value = "INVOKE", target = "Lnet/minecraft/server/level/ChunkHolder;getTicketLevel()I"))
+    private int silkard$oldTicketLevel(net.minecraft.server.level.ChunkHolder holder) {
+        return holder.oldTicketLevel;
+    }
+
+    // CraftBukkit - disable mob spawning when no players are online
+    @org.spongepowered.asm.mixin.injection.Redirect(method = "tickChunks(Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @org.spongepowered.asm.mixin.injection.At(value = "INVOKE", target = "Lnet/minecraft/world/level/gamerules/GameRules;get(Lnet/minecraft/world/level/gamerules/GameRule;)Ljava/lang/Object;"))
+    private Object silkard$mobSpawningRule(net.minecraft.world.level.gamerules.GameRules rules, net.minecraft.world.level.gamerules.GameRule rule) {
+        Object value = rules.get(rule);
+        if (rule == net.minecraft.world.level.gamerules.GameRules.SPAWN_MOBS) {
+            return (Boolean) value && !this.level.players().isEmpty();
+        }
+        return value;
+    }
 }

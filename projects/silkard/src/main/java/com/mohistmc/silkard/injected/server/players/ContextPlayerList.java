@@ -22,11 +22,7 @@ public interface ContextPlayerList {
         throw new ContextStateException("Not implemented");
     }
 
-    default ServerPlayer respawn(ServerPlayer entityplayer, boolean flag, Entity.RemovalReason entity_removalreason, PlayerRespawnEvent.RespawnReason reason) {
-        throw new ContextStateException("Not implemented");
-    }
-
-    default ServerPlayer respawn(ServerPlayer entityplayer, ServerLevel worldserver, boolean flag, Location location, boolean avoidSuffocation, Entity.RemovalReason entity_removalreason, PlayerRespawnEvent.RespawnReason reason) {
+    default ServerPlayer silkard$respawnWithReason(ServerPlayer entityplayer, boolean flag, Entity.RemovalReason entity_removalreason, PlayerRespawnEvent.RespawnReason reason) {
         throw new ContextStateException("Not implemented");
     }
 
@@ -54,7 +50,7 @@ public interface ContextPlayerList {
         throw new ContextStateException("Not implemented");
     }
 
-    default ServerPlayer respawn(ServerPlayer playerIn, boolean flag, Entity.RemovalReason removalReason, PlayerRespawnEvent.RespawnReason respawnReason, Location location) {
+    default ServerPlayer silkard$respawnWithLocation(ServerPlayer playerIn, boolean flag, Entity.RemovalReason removalReason, PlayerRespawnEvent.RespawnReason respawnReason, Location location) {
         throw new ContextStateException("Not implemented");
     }
 
@@ -63,6 +59,10 @@ public interface ContextPlayerList {
     }
 
     default boolean disconnectAllPlayersWithProfile(java.util.UUID uuid, ServerPlayer player) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default java.util.Optional<net.minecraft.nbt.CompoundTag> silkard$loadPlayerData(ServerPlayer player) {
         throw new ContextStateException("Not implemented");
     }
 

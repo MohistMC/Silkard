@@ -45,6 +45,10 @@ public interface ContextServerCommonPacketListenerImpl {
         throw new ContextStateException("Not implemented");
     }
 
+    default net.minecraft.server.MinecraftServer silkard$server() {
+        throw new ContextStateException("Not implemented");
+    }
+
     default ServerPlayer silkard$player() {
         throw new ContextStateException("Not implemented");
     }

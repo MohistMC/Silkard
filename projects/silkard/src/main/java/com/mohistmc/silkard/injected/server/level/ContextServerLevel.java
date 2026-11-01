@@ -76,7 +76,7 @@ public interface ContextServerLevel extends ContextLevel {
         throw new ContextStateException("Not implemented");
     }
 
-    default void sendParticlesSource(ServerPlayer sender, ParticleOptions particle, boolean overrideLimiter, boolean alwaysShow, double x, double y, double z, int count, double xDist, double yDist, double zDist, double speed) {
+    default <T extends ParticleOptions> int sendParticlesSource(ServerPlayer sender, T particle, boolean overrideLimiter, boolean alwaysShow, double x, double y, double z, int count, double xDist, double yDist, double zDist, double speed) {
         throw new ContextStateException("Not implemented");
     }
 

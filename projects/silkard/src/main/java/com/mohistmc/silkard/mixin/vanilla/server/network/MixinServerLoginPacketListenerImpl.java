@@ -2,20 +2,29 @@ package com.mohistmc.silkard.mixin.vanilla.server.network;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mohistmc.silkard.injected.server.ContextMinecraftServer;
+import com.mohistmc.silkard.injected.server.network.ContextServerCommonPacketListenerImpl;
 import com.mohistmc.silkard.injected.server.network.ContextServerLoginPacketListenerImpl;
 import com.mohistmc.silkard.injected.server.players.ContextPlayerList;
 import com.mojang.authlib.GameProfile;
 import java.net.SocketAddress;
 import java.util.UUID;
 import net.minecraft.network.Connection;
+import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketUtils;
+import net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.login.ServerboundLoginAcknowledgedPacket;
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.util.Waitable;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent;
@@ -29,7 +38,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerLoginPacketListenerImpl.class)
-public class MixinServerLoginPacketListenerImpl implements ContextServerLoginPacketListenerImpl {
+public class MixinServerLoginPacketListenerImpl implements ContextServerLoginPacketListenerImpl, CraftPlayer.TransferCookieConnection {
 
     // @formatter:off
     @Shadow @Final private MinecraftServer server;
@@ -49,6 +58,26 @@ public class MixinServerLoginPacketListenerImpl implements ContextServerLoginPac
     @Override
     public Connection silkard$connection() {
         return this.connection;
+    }
+
+    @Override
+    public boolean isTransferred() {
+        return this.transferred;
+    }
+
+    @Override
+    public ConnectionProtocol getProtocol() {
+        return ConnectionProtocol.LOGIN;
+    }
+
+    @Override
+    public void sendPacket(Packet<?> packet) {
+        this.connection.send(packet);
+    }
+
+    @Override
+    public void kickPlayer(Component reason) {
+        ((ServerLoginPacketListenerImpl) (Object) this).disconnect(reason);
     }
 
     @Override
@@ -140,6 +169,27 @@ public class MixinServerLoginPacketListenerImpl implements ContextServerLoginPac
         }
         this.silkard$player = player;
         return null;
+    }
+
+    // CraftBukkit - run on the server thread
+    @Inject(method = "handleLoginAcknowledgement", at = @At("HEAD"))
+    private void silkard$ensureLoginAckThread(ServerboundLoginAcknowledgedPacket packet, CallbackInfo ci) {
+        PacketUtils.ensureRunningOnSameThread(packet, (ServerLoginPacketListenerImpl) (Object) this, this.server.packetProcessor());
+    }
+
+    // CraftBukkit - plugin cookie handling
+    @Inject(method = "handleCookieResponse", at = @At("HEAD"), cancellable = true)
+    private void silkard$cookieResponse(ServerboundCookieResponsePacket packet, CallbackInfo ci) {
+        PacketUtils.ensureRunningOnSameThread(packet, (ServerLoginPacketListenerImpl) (Object) this, this.server.packetProcessor());
+        if (this.silkard$player != null && this.silkard$player.getBukkitEntity().handleCookieResponse(packet)) {
+            ci.cancel();
+        }
+    }
+
+    // CraftBukkit - carry the already-created player into the configuration phase
+    @Inject(method = "handleLoginAcknowledgement", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerConfigurationPacketListenerImpl;startConfiguration()V", shift = At.Shift.BEFORE))
+    private void silkard$attachPlayerToConfiguration(ServerboundLoginAcknowledgedPacket packet, CallbackInfo ci, @Local(ordinal = 0) ServerConfigurationPacketListenerImpl listener) {
+        ((ContextServerCommonPacketListenerImpl) listener).silkard$setPlayer(this.silkard$player);
     }
 
     @Redirect(method = "verifyLoginAndFinishConnectionSetup",

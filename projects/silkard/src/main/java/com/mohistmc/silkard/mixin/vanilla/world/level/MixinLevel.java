@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.block.CapturedBlockState;
+import org.bukkit.craftbukkit.util.CraftSpawnCategory;
 import org.bukkit.entity.SpawnCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -203,6 +204,15 @@ public abstract class MixinLevel implements ContextLevel {
     }
 
     // CraftBukkit start - capture tree generation
+    @Inject(method = "<init>(Lnet/minecraft/world/level/storage/WritableLevelData;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/core/Holder;ZZJI)V", at = @At("TAIL"))
+    private void silkard$initTicksPerSpawn(CallbackInfo ci) {
+        for (SpawnCategory spawnCategory : SpawnCategory.values()) {
+            if (CraftSpawnCategory.isValidForLimits(spawnCategory)) {
+                this.ticksPerSpawnCategory.put(spawnCategory, (long) ((ContextLevel) (Object) this).getCraftServer().getTicksPerSpawns(spawnCategory));
+            }
+        }
+    }
+
     @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
     private void silkard$captureTreeBlockState(BlockPos pos, BlockState blockState, int updateFlags, int updateLimit, CallbackInfoReturnable<Boolean> cir) {
         if (captureTreeGeneration) {

@@ -28,7 +28,7 @@ public class MixinSpawnUtil {
     // CraftBukkit start
     @Redirect(method = "trySpawnMob", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)V"))
     private static void silkard$addFreshEntity(ServerLevel level, Entity entity) {
-        ((ContextServerLevelAccessor) level).addFreshEntityWithPassengers(entity, CreatureSpawnEvent.SpawnReason.DEFAULT);
+        ((ContextServerLevelAccessor) level).addFreshEntityWithPassengers(entity, com.mohistmc.silkard.injected.util.ContextSpawnUtil.consumeSpawnReason(CreatureSpawnEvent.SpawnReason.DEFAULT));
     }
 
     @Inject(method = "trySpawnMob", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)V", shift = At.Shift.AFTER))

@@ -722,7 +722,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
         if (!breakBlocks) {
             explosionType = net.minecraft.world.level.Level.ExplosionInteraction.NONE; // Don't break blocks
         } else if (source == null) {
-            explosionType = net.minecraft.world.level.Level.ExplosionInteraction.STANDARD; // Break blocks, don't decay drops
+            explosionType = net.minecraft.world.level.Level.ExplosionInteraction.BLOCK; // Break blocks, don't decay drops
         } else {
             explosionType = net.minecraft.world.level.Level.ExplosionInteraction.MOB; // Respect mobGriefing gamerule
         }

@@ -125,6 +125,16 @@ public abstract class MixinEntity implements ContextEntity {
     }
 
     @Override
+    public boolean silkard$forceDrops() {
+       return forceDrops;
+    }
+
+    @Override
+    public void silkard$forceDrops(boolean forceDrops) {
+       this.forceDrops = forceDrops;
+    }
+
+    @Override
     public boolean silkard_pluginRemoved() {
        return pluginRemoved;
     }
@@ -254,11 +264,243 @@ public abstract class MixinEntity implements ContextEntity {
         }
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;handlePortal()V"))
+    @Redirect(method = "baseTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;handlePortal()V"))
     private void silkard$handlePortal(Entity self) {
         if (self instanceof net.minecraft.server.level.ServerPlayer) {
             this.handlePortal();
         }
     }
     // CraftBukkit end
+
+    // CraftBukkit start - Entity.patch
+    public int getDefaultMaxAirSupply() {
+        return 300;
+    }
+
+    @Override
+    public void refreshEntityData(net.minecraft.server.level.ServerPlayer to) {
+        java.util.List<net.minecraft.network.syncher.SynchedEntityData.DataValue<?>> list = ((Entity) (Object) this).getEntityData().getNonDefaultValues();
+        if (list != null) {
+            to.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket(((Entity) (Object) this).getId(), list));
+        }
+    }
+
+    @Shadow
+    protected abstract net.minecraft.sounds.SoundEvent getSwimSound();
+
+    @Shadow
+    protected abstract net.minecraft.sounds.SoundEvent getSwimSplashSound();
+
+    @Shadow
+    protected abstract net.minecraft.sounds.SoundEvent getSwimHighSpeedSplashSound();
+
+    @Override
+    public net.minecraft.sounds.SoundEvent getSwimSound0() {
+        return this.getSwimSound();
+    }
+
+    @Override
+    public net.minecraft.sounds.SoundEvent getSwimSplashSound0() {
+        return this.getSwimSplashSound();
+    }
+
+    @Override
+    public net.minecraft.sounds.SoundEvent getSwimHighSpeedSplashSound0() {
+        return this.getSwimHighSpeedSplashSound();
+    }
+
+    public final void igniteForSeconds(float numberOfSeconds, boolean callEvent) {
+        if (callEvent) {
+            org.bukkit.event.entity.EntityCombustEvent event = new org.bukkit.event.entity.EntityCombustEvent(this.getBukkitEntity(), numberOfSeconds);
+            this.level.getCraftServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return;
+            }
+            numberOfSeconds = event.getDuration();
+        }
+        ((Entity) (Object) this).igniteForTicks(net.minecraft.util.Mth.floor(numberOfSeconds * 20.0F));
+    }
+
+    @Override
+    public boolean saveAsPassenger(net.minecraft.world.level.storage.ValueOutput output, boolean includeAll) {
+        if (!this.persist) {
+            return false;
+        }
+        boolean result = ((Entity) (Object) this).saveAsPassenger(output);
+        if (result) {
+            output.putInt("Bukkit.updateLevel", 2);
+        }
+        return result;
+    }
+
+    @Override
+    public void saveWithoutId(net.minecraft.world.level.storage.ValueOutput output, boolean includeAll) {
+        ((Entity) (Object) this).saveWithoutId(output);
+        output.putInt("Bukkit.updateLevel", 2);
+        if (!this.persist) {
+            output.putBoolean("Bukkit.persist", this.persist);
+        }
+        if (!this.visibleByDefault) {
+            output.putBoolean("Bukkit.visibleByDefault", this.visibleByDefault);
+        }
+        if (this.persistentInvisibility) {
+            output.putBoolean("Bukkit.invisible", this.persistentInvisibility);
+        }
+    }
+
+    @Override
+    public boolean dropAllLeashConnections(net.minecraft.world.entity.player.Player player, org.bukkit.event.entity.EntityUnleashEvent.UnleashReason reason) {
+        java.util.List<net.minecraft.world.entity.Leashable> list = net.minecraft.world.entity.Leashable.leashableLeashedTo((Entity) (Object) this);
+        boolean flag = !list.isEmpty();
+
+        if (((Object) this) instanceof net.minecraft.world.entity.Leashable leashable && leashable.isLeashed()) {
+            this.level.getCraftServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityUnleashEvent(this.getBukkitEntity(), reason));
+            leashable.dropLeash();
+            flag = true;
+        }
+
+        for (net.minecraft.world.entity.Leashable leashable1 : list) {
+            if (leashable1 instanceof Entity entity) {
+                this.level.getCraftServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityUnleashEvent(entity.getBukkitEntity(), reason));
+            }
+            leashable1.dropLeash();
+        }
+
+        return flag;
+    }
+
+    @Override
+    public org.bukkit.craftbukkit.event.CraftPortalEvent callPortalEvent(Entity entity, org.bukkit.Location exit, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause, int searchRadius, int creationRadius) {
+        org.bukkit.Location enter = this.getBukkitEntity().getLocation();
+        org.bukkit.event.entity.EntityPortalEvent event = new org.bukkit.event.entity.EntityPortalEvent((org.bukkit.entity.Entity) this.getBukkitEntity(), enter, exit, searchRadius, true, creationRadius);
+        org.bukkit.Bukkit.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled() || event.getTo() == null || event.getTo().getWorld() == null) {
+            return null;
+        }
+        return new org.bukkit.craftbukkit.event.CraftPortalEvent(event);
+    }
+
+    @Unique
+    private final net.minecraft.commands.CommandSource silkard$commandSource = new net.minecraft.commands.CommandSource() {
+        @Override
+        public void sendSystemMessage(net.minecraft.network.chat.Component component) {
+            MixinEntity.this.getBukkitEntity().sendMessage(component.getString());
+        }
+
+        @Override
+        public org.bukkit.command.CommandSender getBukkitSender(net.minecraft.commands.CommandSourceStack wrapper) {
+            return ((Entity) (Object) MixinEntity.this).getBukkitEntity();
+        }
+
+        @Override
+        public boolean acceptsSuccess() {
+            return false;
+        }
+
+        @Override
+        public boolean acceptsFailure() {
+            return false;
+        }
+
+        @Override
+        public boolean shouldInformAdmins() {
+            return false;
+        }
+    };
+
+    @Override
+    public net.minecraft.commands.CommandSource silkard$commandSource() {
+        return this.silkard$commandSource;
+    }
+
+    @Override
+    public void silkard$setCommandSource(net.minecraft.commands.CommandSource commandSource) {
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - EntityRemoveEvent.DEATH
+     */
+    @Overwrite
+    public void kill(net.minecraft.server.level.ServerLevel level) {
+        ((ContextEntity) (Object) this).setRemoved(Entity.RemovalReason.KILLED, EntityRemoveEvent.Cause.DEATH);
+        ((Entity) (Object) this).gameEvent(net.minecraft.world.level.gameevent.GameEvent.ENTITY_DIE);
+    }
+
+    @Overwrite
+    protected void onBelowWorld() {
+        this.discard(EntityRemoveEvent.Cause.OUT_OF_WORLD);
+    }
+
+    @Inject(method = "setPose", at = @At("HEAD"))
+    private void silkard$poseChange(net.minecraft.world.entity.Pose pose, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (pose != ((Entity) (Object) this).getPose()) {
+            this.level.getCraftServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityPoseChangeEvent(this.getBukkitEntity(), org.bukkit.entity.Pose.values()[pose.ordinal()]));
+        }
+    }
+
+    @Overwrite
+    protected void setRot(float yRot, float xRot) {
+        if (Float.isNaN(yRot)) {
+            yRot = 0;
+        }
+        if (yRot == Float.POSITIVE_INFINITY || yRot == Float.NEGATIVE_INFINITY) {
+            yRot = 0;
+        }
+        if (Float.isNaN(xRot)) {
+            xRot = 0;
+        }
+        if (xRot == Float.POSITIVE_INFINITY || xRot == Float.NEGATIVE_INFINITY) {
+            xRot = 0;
+        }
+        ((Entity) (Object) this).setYRot(yRot % 360.0F);
+        ((Entity) (Object) this).setXRot(xRot % 360.0F);
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - EntityCombustEvent for lava ignition
+     */
+    @Overwrite
+    public void lavaIgnite() {
+        if (!((Entity) (Object) this).fireImmune()) {
+            if (((Object) this) instanceof net.minecraft.world.entity.LivingEntity && this.remainingFireTicks <= 0) {
+                org.bukkit.block.Block damager = (this.lastLavaContact == null) ? null : org.bukkit.craftbukkit.block.CraftBlock.at(this.level, this.lastLavaContact);
+                org.bukkit.event.entity.EntityCombustEvent combustEvent = new org.bukkit.event.entity.EntityCombustByBlockEvent(damager, this.getBukkitEntity(), 15);
+                this.level.getCraftServer().getPluginManager().callEvent(combustEvent);
+                if (!combustEvent.isCancelled()) {
+                    this.igniteForSeconds(combustEvent.getDuration(), false);
+                }
+            } else {
+                this.igniteForSeconds(15.0F, false);
+            }
+        }
+    }
+
+    @Inject(method = "baseTick", at = @At("TAIL"))
+    private void silkard$clearLavaContact(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (!((Entity) (Object) this).isInLava()) {
+            this.lastLavaContact = null;
+        }
+    }
+
+    @Inject(method = "setSwimming", at = @At("HEAD"), cancellable = true)
+    private void silkard$toggleSwim(boolean swimming, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (this.valid && ((Entity) (Object) this).isSwimming() != swimming && ((Object) this) instanceof net.minecraft.world.entity.LivingEntity) {
+            if (org.bukkit.craftbukkit.event.CraftEventFactory.callToggleSwimEvent((net.minecraft.world.entity.LivingEntity) (Object) this, swimming).isCancelled()) {
+                ci.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "snapTo(DDDFF)V", at = @At("TAIL"))
+    private void silkard$loadChunkOnSnap(double x, double y, double z, float yRot, float xRot, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (this.valid && this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            serverLevel.getChunk((int) Math.floor(this.getX()) >> 4, (int) Math.floor(this.getZ()) >> 4);
+        }
+    }
+    // CraftBukkit end
+
+    @Shadow
+    protected int remainingFireTicks;
 }

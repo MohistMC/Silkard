@@ -84,6 +84,10 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mutable;
+import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.level.Level;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -177,6 +181,72 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     @Override
     public void silkard$setServer(CraftServer server) {
         this.server = server;
+    }
+
+    @Override
+    public void handleCustomClickAction(net.minecraft.resources.Identifier id, Optional<net.minecraft.nbt.Tag> payload, ServerPlayer player) {
+        ((net.minecraft.server.MinecraftServer) (Object) this).handleCustomClickAction(id, payload);
+        org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerCustomClickEvent(id, payload, player);
+    }
+
+    // CraftBukkit start
+    public final java.util.concurrent.ExecutorService chatExecutor = java.util.concurrent.Executors.newCachedThreadPool(
+            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Async Chat Thread - #%d").build());
+
+    public boolean isDebugging() {
+        return false;
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - resolve the respawn dimension from the world's own respawn data
+     */
+    @Overwrite
+    public ServerLevel findRespawnDimension() {
+        return this.findRespawnDimension(((MinecraftServer) (Object) this).overworld());
+    }
+
+    public ServerLevel findRespawnDimension(ServerLevel world) {
+        if (world == null) {
+            return null;
+        }
+        LevelData.RespawnData respawnData = world.getRespawnData();
+        ResourceKey<Level> resourcekey = respawnData.dimension();
+        ServerLevel serverlevel = ((MinecraftServer) (Object) this).getLevel(resourcekey);
+        return serverlevel != null ? serverlevel : ((MinecraftServer) (Object) this).overworld();
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - per world respawn data with SpawnChangeEvent
+     */
+    @Overwrite
+    public void setRespawnData(LevelData.RespawnData respawnData) {
+        this.setRespawnData(respawnData, ((MinecraftServer) (Object) this).overworld());
+    }
+
+    public void setRespawnData(LevelData.RespawnData respawnData, ServerLevel world) {
+        net.minecraft.world.level.storage.ServerLevelData serverleveldata = world.serverLevelData;
+        LevelData.RespawnData old = serverleveldata.getRespawnData();
+
+        if (!old.equals(respawnData)) {
+            serverleveldata.setSpawn(respawnData);
+            org.bukkit.event.world.SpawnChangeEvent event = new org.bukkit.event.world.SpawnChangeEvent(world.getWorld(), org.bukkit.craftbukkit.util.CraftLocation.toBukkit(old.pos(), world.getWorld(), old.yaw(), old.pitch()));
+            this.server.getPluginManager().callEvent(event);
+            ((MinecraftServer) (Object) this).getPlayerList().broadcastAll(new net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket(respawnData));
+            this.updateEffectiveRespawnData();
+        }
+    }
+    // CraftBukkit end
+
+    @Override
+    public void silkard$setRespawnData(LevelData.RespawnData respawnData, ServerLevel world) {
+        this.setRespawnData(respawnData, world);
+    }
+
+    @Override
+    public ServerLevel silkard$findRespawnDimension(ServerLevel world) {
+        return this.findRespawnDimension(world);
     }
 
     @Override
@@ -964,7 +1034,6 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
             this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
         }
     }
-
 
     // CraftBukkit - ctor TAIL: options/worldLoader/vanillaCommandDispatcher/terminal/shutdown hook
     // (CB MinecraftServer.patch ctor hunk 的等价；silkard 经 MixinMain 槽位或 silkard$configure 供值)

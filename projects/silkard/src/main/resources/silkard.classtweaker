@@ -65,6 +65,7 @@ accessible field net/minecraft/server/MinecraftServer serverThread Ljava/lang/Th
 accessible field net/minecraft/server/ServerAdvancementManager advancements Ljava/util/Map;
 accessible field net/minecraft/server/dedicated/Settings properties Ljava/util/Properties;
 accessible field net/minecraft/server/level/ChunkHolder oldTicketLevel I
+accessible class net/minecraft/server/level/ServerChunkCache$MainThreadExecutor
 accessible field net/minecraft/server/level/ChunkHolder playerProvider Lnet/minecraft/server/level/ChunkHolder$PlayerProvider;
 accessible field net/minecraft/server/level/ChunkMap$TrackedEntity seenBy Ljava/util/Set;
 accessible field net/minecraft/server/level/ChunkMap$TrackedEntity serverEntity Lnet/minecraft/server/level/ServerEntity;
@@ -667,6 +668,7 @@ transitive-inject-interface	net/minecraft/server/rcon/RconConsoleSource	com/mohi
 transitive-inject-interface	net/minecraft/util/TickThrottler	com/mohistmc/silkard/injected/util/ContextTickThrottler
 transitive-inject-interface	net/minecraft/world/Container	com/mohistmc/silkard/injected/world/ContextContainer
 transitive-inject-interface	net/minecraft/world/clock/ServerClockManager	com/mohistmc/silkard/injected/world/clock/ContextServerClockManager
+transitive-inject-interface	net/minecraft/world/clock/ServerClockManager$ServerClockInstance	com/mohistmc/silkard/injected/world/clock/ContextServerClockInstance
 transitive-inject-interface	net/minecraft/world/damagesource/DamageSource	com/mohistmc/silkard/injected/world/damagesource/ContextDamageSource
 transitive-inject-interface	net/minecraft/world/damagesource/DamageSources	com/mohistmc/silkard/injected/world/damagesource/ContextDamageSources
 transitive-inject-interface	net/minecraft/world/entity/animal/equine/AbstractHorse	com/mohistmc/silkard/injected/world/entity/animal/equine/ContextAbstractHorse
@@ -771,3 +773,4 @@ transitive-inject-interface net/minecraft/world/level/gamerules/GameRules com/mo
 
 transitive-extend-enum net/minecraft/world/level/Level$ExplosionInteraction STANDARD
 transitive-inject-interface	net/minecraft/server/dedicated/DedicatedServer	com/mohistmc/silkard/injected/server/ContextDedicatedServer
+transitive-inject-interface	net/minecraft/server/dedicated/DedicatedServerProperties	com/mohistmc/silkard/injected/server/dedicated/ContextDedicatedServerProperties

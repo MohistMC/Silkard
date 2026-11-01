@@ -5,11 +5,17 @@ import com.mohistmc.silkard.injected.world.entity.ContextEntity;
 import com.mohistmc.silkard.injected.world.entity.ContextMob;
 import com.mohistmc.silkard.injected.world.level.ContextLevelWriter;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -17,11 +23,16 @@ import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.entity.EntityUnleashEvent;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * @author Mgazul
@@ -42,6 +53,21 @@ public abstract class MixinMob implements ContextMob {
 
     @Shadow
     protected abstract @Nullable LivingEntity asValidTarget(@Nullable LivingEntity target);
+
+    @Shadow
+    protected abstract SoundEvent getAmbientSound();
+
+    @Shadow
+    protected abstract boolean canHoldItem(ItemStack stack);
+
+    @Unique
+    private @Nullable ItemEntity silkard$pickupItemEntity;
+
+    // CraftBukkit - delegate for CraftMob
+    @Override
+    public SoundEvent getAmbientSound0() {
+        return this.getAmbientSound();
+    }
 
     @Override
     public boolean silkard_aware() {
@@ -133,6 +159,71 @@ public abstract class MixinMob implements ContextMob {
             ((ContextEntity) (Object) this).discard(EntityRemoveEvent.Cause.TRANSFORMATION);
         }
         return converted;
+    }
+    // CraftBukkit end
+
+    // CraftBukkit start - aware flag + despawn/pickup/unleash events
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    private void silkard$saveAware(ValueOutput output, CallbackInfo ci) {
+        output.putBoolean("Bukkit.Aware", this.aware);
+    }
+
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    private void silkard$readAware(ValueInput input, CallbackInfo ci) {
+        this.aware = input.getBooleanOr("Bukkit.Aware", this.aware);
+    }
+
+    @Inject(method = "serverAiStep", at = @At("HEAD"), cancellable = true)
+    private void silkard$awareGuard(CallbackInfo ci) {
+        if (!this.aware) {
+            ci.cancel();
+        }
+    }
+
+    @Redirect(method = "checkDespawn", at = @At(value = "INVOKE", target = "discard()V"))
+    private void silkard$despawnDiscard(Mob self) {
+        ((ContextEntity) self).discard(EntityRemoveEvent.Cause.DESPAWN);
+    }
+
+    @Redirect(method = "pickUpItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;equipItemIfPossible(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;"))
+    private ItemStack silkard$pickupEquip(Mob self, ServerLevel level, ItemStack stack) {
+        return this.equipItemIfPossible(level, stack, this.silkard$pickupItemEntity);
+    }
+
+    @Redirect(method = "pickUpItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;discard()V"))
+    private void silkard$pickupDiscard(ItemEntity itemEntity) {
+        ((ContextEntity) itemEntity).discard(EntityRemoveEvent.Cause.PICKUP);
+    }
+
+    @Redirect(method = "equipItemIfPossible", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;canHoldItem(Lnet/minecraft/world/item/ItemStack;)Z"))
+    private boolean silkard$canHoldItem(Mob self, ItemStack stack) {
+        boolean can = self.canHoldItem(stack);
+        if (this.silkard$pickupItemEntity != null) {
+            return !CraftEventFactory.callEntityPickupItemEvent(self, this.silkard$pickupItemEntity, 0, !can).isCancelled();
+        }
+        return can;
+    }
+
+    @Redirect(method = "equipItemIfPossible", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;spawnAtLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/entity/item/ItemEntity;"))
+    private ItemEntity silkard$forceDrops(Mob self, ServerLevel level, ItemStack stack) {
+        ((ContextEntity) self).silkard$forceDrops(true);
+        ItemEntity dropped = ((Entity) self).spawnAtLocation(level, stack);
+        ((ContextEntity) self).silkard$forceDrops(false);
+        return dropped;
+    }
+
+    public ItemStack equipItemIfPossible(ServerLevel level, ItemStack itemStack, @Nullable ItemEntity itemEntity) {
+        this.silkard$pickupItemEntity = itemEntity;
+        try {
+            return ((Mob) (Object) this).equipItemIfPossible(level, itemStack);
+        } finally {
+            this.silkard$pickupItemEntity = null;
+        }
+    }
+
+    @Inject(method = "startRiding(Lnet/minecraft/world/entity/Entity;ZZ)Z", at = @At(value = "INVOKE", target = "dropLeash()V", shift = At.Shift.BEFORE))
+    private void silkard$unleashOnRide(Entity entity, boolean force, boolean sendEventAndTriggers, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        org.bukkit.Bukkit.getPluginManager().callEvent(new EntityUnleashEvent(((Mob) (Object) this).getBukkitEntity(), EntityUnleashEvent.UnleashReason.UNKNOWN));
     }
     // CraftBukkit end
 }

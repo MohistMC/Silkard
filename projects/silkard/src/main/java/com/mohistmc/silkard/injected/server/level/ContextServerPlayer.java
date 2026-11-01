@@ -214,7 +214,19 @@ public interface ContextServerPlayer extends ContextPlayer {
         throw new ContextStateException("Not implemented");
     }
 
+    default net.minecraft.world.level.portal.TeleportTransition findRespawnPositionAndUseSpawnBlock(boolean consumeSpawnBlock, net.minecraft.world.level.portal.TeleportTransition.PostTeleportTransition postTeleportTransition, org.bukkit.event.player.PlayerRespawnEvent.RespawnReason reason) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default void reset() {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default void silkard$triggerDimensionChangeTriggers(ServerLevel oldLevel) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default boolean silkard$isImmobile() {
         throw new ContextStateException("Not implemented");
     }
 

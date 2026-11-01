@@ -144,7 +144,7 @@ public abstract class MixinPlayer extends Avatar implements ContextPlayer {
     // CraftBukkit end
 
     // CraftBukkit start - resync the inventory when the attack did not land
-    @Inject(method = "attack(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;playServerSideSound(Lnet/minecraft/world/sounds/SoundEvent;)V", ordinal = 1))
+    @Inject(method = "attack(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;playServerSideSound(Lnet/minecraft/sounds/SoundEvent;)V", ordinal = 1))
     private void silkard$resyncInventory(CallbackInfo ci) {
         if (((Object) this) instanceof ServerPlayer serverPlayer) {
             ((CraftPlayer) serverPlayer.getBukkitEntity()).updateInventory();
@@ -174,7 +174,7 @@ public abstract class MixinPlayer extends Avatar implements ContextPlayer {
         return enchanted;
     }
 
-    @Redirect(method = "stabAttack(Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/Entity;FZZZ)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
+    @Redirect(method = "stabAttack(Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/Entity;FZZZ)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack silkard$captureAttackSlot(Player player, EquipmentSlot slot) {
         this.silkard$attackSlot = slot;
         return player.getItemBySlot(slot);
