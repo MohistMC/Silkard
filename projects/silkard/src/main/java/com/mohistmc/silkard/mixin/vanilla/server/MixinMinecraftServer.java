@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Unique;
 import com.mohistmc.silkard.injected.server.level.ContextServerLevel;
 import com.mohistmc.silkard.injected.world.level.ContextLevel;
+import com.mohistmc.silkard.injected.world.level.storage.ContextLevelStorageAccess;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.Lifecycle;
@@ -529,6 +530,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
                 savedTickets.activateAllDeactivatedTickets();
             }
         });
+        this.levelLoadListener.start(net.minecraft.server.level.progress.LevelLoadListener.Stage.LOAD_INITIAL_CHUNKS, chunkLoadCounter.totalChunks());
         do {
             this.levelLoadListener.update(net.minecraft.server.level.progress.LevelLoadListener.Stage.LOAD_INITIAL_CHUNKS, chunkLoadCounter.readyChunks(), chunkLoadCounter.totalChunks());
             this.nextTickTimeNanos = Util.getNanos() + 10000000L; // PREPARE_LEVELS_DEFAULT_DELAY_NANOS
@@ -747,6 +749,10 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
             } else {
                 world = new ServerLevel((MinecraftServer) (Object) this, this.executor, worldSession, worlddata, worldKey, levelstem, flag, j, com.google.common.collect.ImmutableList.of(), true);
             }
+
+            // CraftBukkit - bind the per-dimension storage access + dimension key so getTypeKey()/save access don't NPE
+            ((ContextLevelStorageAccess) worldSession).silkard$setDimType(dimensionKey);
+            ((ContextServerLevel) world).silkard$setStorageSource(worldSession);
 
             ((ContextServerLevel) world).silkard$setEnvironment(org.bukkit.World.Environment.getEnvironment(dimension));
             ((ContextServerLevel) world).silkard$setGenerator(gen, biomeProvider);

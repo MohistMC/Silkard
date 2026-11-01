@@ -88,7 +88,6 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     public LevelStorageSource.LevelStorageAccess storageSource;
     public UUID uuid;
     // Moved from MinecraftServer start
-    private SavedDataStorage savedDataStorage;
     private GameRules gameRules;
     private WorldGenSettings worldGenSettings;
     private CustomBossEvents customBossEvents;
@@ -128,7 +127,7 @@ public abstract class MixinServerLevel implements ContextServerLevel {
         if (this.clockManager == null) {
             ServerClockManager manager = this.getDataStorage().computeIfAbsent(ServerClockManager.TYPE);
             manager.init(this.getServer());
-            ((com.mohistmc.silkard.injected.world.clock.ContextServerClockManager) (Object) manager).silkard$init((ServerLevel) (Object) this);
+            manager.silkard$init((ServerLevel) (Object) this);
             this.clockManager = manager;
         }
         cir.setReturnValue(this.clockManager);
@@ -162,6 +161,11 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     @Override
     public LevelStorageSource.LevelStorageAccess silkard_storageSource() {
        return storageSource;
+    }
+
+    @Override
+    public void silkard$setStorageSource(LevelStorageSource.LevelStorageAccess storageSource) {
+        this.storageSource = storageSource;
     }
 
     // CraftBukkit start
@@ -314,9 +318,9 @@ public abstract class MixinServerLevel implements ContextServerLevel {
             com.mojang.authlib.GameProfile gameprofile = ((ServerLevel) (Object) this).getServer().getSingleplayerProfile();
             this.storageSource.saveDataTag((net.minecraft.world.level.storage.WorldData) this.serverLevelData, gameprofile == null ? null : gameprofile.id());
             if (flush) {
-                this.savedDataStorage.saveAndJoin();
+                this.getDataStorage().saveAndJoin();
             } else {
-                this.savedDataStorage.scheduleSave();
+                this.getDataStorage().scheduleSave();
             }
         }
     }
@@ -374,7 +378,12 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     private Explosion.BlockInteraction getDestroyType(net.minecraft.world.level.gamerules.GameRule<Boolean> gameRule) { throw new AssertionError(); }
 
     public SavedDataStorage getWorldContainerDataStorage() {
-        return this.savedDataStorage;
+        return this.getDataStorage();
+    }
+
+    @Override
+    public net.minecraft.world.level.storage.PrimaryLevelData silkard$serverLevelDataCB() {
+        return (net.minecraft.world.level.storage.PrimaryLevelData) this.serverLevelData;
     }
 
     /**
@@ -433,8 +442,8 @@ public abstract class MixinServerLevel implements ContextServerLevel {
 
     @Inject(method = "close", at = @At("TAIL"))
     private void silkard$closeDataStorage(CallbackInfo ci) {
-        if (this.savedDataStorage != null) {
-            this.savedDataStorage.close();
+        if (this.getDataStorage() != null) {
+            this.getDataStorage().close();
         }
     }
 

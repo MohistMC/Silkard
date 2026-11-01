@@ -195,6 +195,26 @@ public abstract class MixinEntity implements ContextEntity {
         this.persistentInvisibility = persistentInvisibility;
     }
 
+    @Override
+    public boolean silkard$lastDamageCancelled() {
+        return lastDamageCancelled;
+    }
+
+    @Override
+    public void silkard$lastDamageCancelled(boolean lastDamageCancelled) {
+        this.lastDamageCancelled = lastDamageCancelled;
+    }
+
+    @Override
+    public BlockPos silkard$lastLavaContact() {
+        return lastLavaContact;
+    }
+
+    @Override
+    public void silkard$setLastLavaContact(BlockPos lastLavaContact) {
+        this.lastLavaContact = lastLavaContact;
+    }
+
     // CraftBukkit start
     /**
      * @author Mgazul

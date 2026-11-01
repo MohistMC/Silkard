@@ -164,14 +164,18 @@ public abstract class MixinPlayerList implements ContextPlayerList {
 
     /**
      * @author Mgazul
-     * @reason CraftBukkit - advancements come from the player instance instead of a PlayerList map
+     * @reason CraftBukkit - lazily create and cache a PlayerAdvancements, keeping it attached to the player
      */
     @Overwrite
     public PlayerAdvancements getPlayerAdvancements(ServerPlayer player) {
-        PlayerAdvancements playeradvancements = player.getAdvancements();
-        if (playeradvancements != null) {
-            playeradvancements.setPlayer(player);
+        UUID uuid = player.getUUID();
+        PlayerAdvancements playeradvancements = this.advancements.get(uuid);
+        if (playeradvancements == null) {
+            Path path = this.server.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).resolve(String.valueOf(uuid));
+            playeradvancements = new PlayerAdvancements(this.server.getFixerUpper(), (PlayerList) (Object) this, this.server.getAdvancements(), path, player);
+            this.advancements.put(uuid, playeradvancements);
         }
+        playeradvancements.setPlayer(player);
         return playeradvancements;
     }
 
@@ -629,7 +633,7 @@ public abstract class MixinPlayerList implements ContextPlayerList {
         WorldBorder worldborder = level.getWorldBorder();
 
         player.connection.send(new ClientboundInitializeBorderPacket(worldborder));
-        player.connection.send(this.server.clockManager().createFullSyncPacket());
+        player.connection.send(level.clockManager().createFullSyncPacket());
         player.connection.send(new ClientboundSetDefaultSpawnPositionPacket(level.getRespawnData()));
         if (level.isRaining()) {
             ((ContextServerPlayer) player).setPlayerWeather(org.bukkit.WeatherType.DOWNFALL, false);

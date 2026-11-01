@@ -22,12 +22,12 @@ import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.event.block.TNTPrimeEvent;
 import org.bukkit.event.entity.EntityKnockbackEvent;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -67,9 +67,9 @@ public class MixinServerExplosion {
     }
 
     // CraftBukkit start - clamp bad radius values
-    @Redirect(method = "<init>", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/world/level/ServerExplosion;radius:F"))
-    private float silkard$clampRadius(float value) {
-        return Math.max(value, 0.0F);
+    @ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true, name = "radius")
+    private static float silkard$clampRadius(float radius) {
+        return Math.max(radius, 0.0F);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
@@ -101,8 +101,7 @@ public class MixinServerExplosion {
         if (entity instanceof EnderDragonPart) {
             return false;
         }
-        ContextEntity ctx = (ContextEntity) entity;
-        ctx.silkard$lastDamageCancelled(false);
+        ((ContextEntity) entity).silkard$lastDamageCancelled(false);
         if (entity instanceof EnderDragon dragon) {
             for (EnderDragonPart part : dragon.subEntities) {
                 if (this.silkard$entityList.contains(part)) {
@@ -112,7 +111,7 @@ public class MixinServerExplosion {
             return false;
         }
         entity.hurtServer(level, source, amount);
-        return !ctx.silkard$lastDamageCancelled();
+        return !((ContextEntity) entity).silkard$lastDamageCancelled();
     }
     // CraftBukkit end
 

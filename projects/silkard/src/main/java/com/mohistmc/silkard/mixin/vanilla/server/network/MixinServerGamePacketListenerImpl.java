@@ -21,7 +21,6 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.util.LazyPlayerSet;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.slf4j.Logger;
-import org.spigotmc.SpigotConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -220,18 +219,19 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
         if (Float.isNaN(destination.xRot())) {
             destination = new net.minecraft.world.entity.PositionMoveRotation(destination.position(), destination.deltaMovement(), destination.yRot(), 0);
         }
-        this.justTeleported = true;
         this.awaitingTeleportTime = this.tickCount;
         if (++this.awaitingTeleport == Integer.MAX_VALUE) {
             this.awaitingTeleport = 0;
         }
         this.player.teleportSetPosition(destination, relatives);
         this.awaitingPositionFromClient = this.player.position();
-        this.lastPosX = this.awaitingPositionFromClient.x;
-        this.lastPosY = this.awaitingPositionFromClient.y;
-        this.lastPosZ = this.awaitingPositionFromClient.z;
-        this.lastYaw = this.player.getYRot();
-        this.lastPitch = this.player.getXRot();
+        this.silkard$lastPosX = this.awaitingPositionFromClient.x;
+        this.silkard$lastPosY = this.awaitingPositionFromClient.y;
+        this.silkard$lastPosZ = this.awaitingPositionFromClient.z;
+        this.silkard$lastYaw = this.player.getYRot();
+        this.silkard$lastPitch = this.player.getXRot();
+        // without this the client never leaves the terrain-loading stage and renders no chunks
+        ((ServerGamePacketListenerImpl) (Object) this).send(net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket.of(this.awaitingTeleport, destination, relatives));
     }
 
     /**
@@ -248,53 +248,50 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
         this.teleport(destination, relatives, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.UNKNOWN);
     }
 
-    @Shadow private double lastPosX;
-    @Shadow private double lastPosY;
-    @Shadow private double lastPosZ;
-    @Shadow private float lastYaw;
-    @Shadow private float lastPitch;
-    @Shadow private boolean hasMoved;
-    @Shadow private boolean justTeleported;
     @Shadow private int awaitingTeleport;
-    @Shadow private long awaitingTeleportTime;
+    @Shadow private int awaitingTeleportTime;
     @Shadow private int tickCount;
     @Shadow private net.minecraft.world.phys.Vec3 awaitingPositionFromClient;
+
+    // Spigot/CraftBukkit tracking state - these fields do not exist in vanilla, so keep them mixin-owned
+    @Unique private double silkard$lastPosX;
+    @Unique private double silkard$lastPosY;
+    @Unique private double silkard$lastPosZ;
+    @Unique private float silkard$lastYaw;
+    @Unique private float silkard$lastPitch;
+    @Unique private boolean silkard$hasMoved;
     // CraftBukkit end
 
     // CraftBukkit start - PlayerMoveEvent
-    @Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;absSnapTo(DDDFF)V"))
-    private void silkard$playerMoveEvent(net.minecraft.network.protocol.game.ServerboundMovePlayerPacket packet, CallbackInfo ci) {
-        this.player.absSnapTo(this.lastPosX, this.lastPosY, this.lastPosZ, this.lastYaw, this.lastPitch);
+    @Inject(method = "handlePlayerPositionChange", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;absSnapTo(DDDFF)V"))
+    private void silkard$playerMoveEvent(double requestedX, double requestedY, double requestedZ, float requestedYRot, float requestedXRot, boolean isOnGround, boolean horizontalCollision, CallbackInfo ci) {
+        this.player.absSnapTo(this.silkard$lastPosX, this.silkard$lastPosY, this.silkard$lastPosZ, this.silkard$lastYaw, this.silkard$lastPitch);
 
         org.bukkit.entity.Player player = this.getCraftPlayer();
-        if (!this.hasMoved) {
-            this.lastPosX = this.player.getX();
-            this.lastPosY = this.player.getY();
-            this.lastPosZ = this.player.getZ();
-            this.lastYaw = this.player.getYRot();
-            this.lastPitch = this.player.getXRot();
-            this.hasMoved = true;
+        if (!this.silkard$hasMoved) {
+            this.silkard$lastPosX = this.player.getX();
+            this.silkard$lastPosY = this.player.getY();
+            this.silkard$lastPosZ = this.player.getZ();
+            this.silkard$lastYaw = this.player.getYRot();
+            this.silkard$lastPitch = this.player.getXRot();
+            this.silkard$hasMoved = true;
         }
-        org.bukkit.Location from = new org.bukkit.Location(player.getWorld(), this.lastPosX, this.lastPosY, this.lastPosZ, this.lastYaw, this.lastPitch);
+        org.bukkit.Location from = new org.bukkit.Location(player.getWorld(), this.silkard$lastPosX, this.silkard$lastPosY, this.silkard$lastPosZ, this.silkard$lastYaw, this.silkard$lastPitch);
         org.bukkit.Location to = player.getLocation().clone();
-        if (packet.hasPos) {
-            to.setX(packet.x);
-            to.setY(packet.y);
-            to.setZ(packet.z);
-        }
-        if (packet.hasRot) {
-            to.setYaw(packet.yRot);
-            to.setPitch(packet.xRot);
-        }
+        to.setX(requestedX);
+        to.setY(requestedY);
+        to.setZ(requestedZ);
+        to.setYaw(requestedYRot);
+        to.setPitch(requestedXRot);
 
-        double delta = Math.pow(this.lastPosX - to.getX(), 2) + Math.pow(this.lastPosY - to.getY(), 2) + Math.pow(this.lastPosZ - to.getZ(), 2);
-        float deltaAngle = Math.abs(this.lastYaw - to.getYaw()) + Math.abs(this.lastPitch - to.getPitch());
+        double delta = Math.pow(this.silkard$lastPosX - to.getX(), 2) + Math.pow(this.silkard$lastPosY - to.getY(), 2) + Math.pow(this.silkard$lastPosZ - to.getZ(), 2);
+        float deltaAngle = Math.abs(this.silkard$lastYaw - to.getYaw()) + Math.abs(this.silkard$lastPitch - to.getPitch());
         if ((delta > 1f / 256 || deltaAngle > 10f) && !((ContextServerGamePacketListenerImpl) (Object) this).silkard$isImmobilePlayer()) {
-            this.lastPosX = to.getX();
-            this.lastPosY = to.getY();
-            this.lastPosZ = to.getZ();
-            this.lastYaw = to.getYaw();
-            this.lastPitch = to.getPitch();
+            this.silkard$lastPosX = to.getX();
+            this.silkard$lastPosY = to.getY();
+            this.silkard$lastPosZ = to.getZ();
+            this.silkard$lastYaw = to.getYaw();
+            this.silkard$lastPitch = to.getPitch();
 
             org.bukkit.Location oldTo = to.clone();
             org.bukkit.event.player.PlayerMoveEvent event = new org.bukkit.event.player.PlayerMoveEvent(player, from, to);

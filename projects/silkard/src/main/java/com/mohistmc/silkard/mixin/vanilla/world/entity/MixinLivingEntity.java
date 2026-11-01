@@ -121,6 +121,29 @@ public abstract class MixinLivingEntity extends Entity implements ContextLivingE
     @Unique
     private int silkard$expToDropField;
 
+    @Unique
+    private boolean silkard$forceDropsField;
+
+    @Override
+    public ArrayList<org.bukkit.inventory.ItemStack> silkard$drops() {
+        return this.drops;
+    }
+
+    @Override
+    public void silkard$setDrops(ArrayList<org.bukkit.inventory.ItemStack> drops) {
+        this.drops = drops;
+    }
+
+    @Override
+    public boolean silkard$forceDrops() {
+        return this.silkard$forceDropsField;
+    }
+
+    @Override
+    public void silkard$forceDrops(boolean forceDrops) {
+        this.silkard$forceDropsField = forceDrops;
+    }
+
     @Override
     public int silkard$expToDrop() {
         return this.silkard$expToDropField;

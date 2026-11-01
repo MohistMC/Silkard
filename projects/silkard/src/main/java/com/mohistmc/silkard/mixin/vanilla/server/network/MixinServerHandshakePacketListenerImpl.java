@@ -48,7 +48,7 @@ public class MixinServerHandshakePacketListenerImpl {
     }
 
     // CraftBukkit start - connection throttle
-    @Inject(method = "beginLogin", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;setupOutboundProtocol(Lnet/minecraft/network/protocol/ProtocolInfo;)V", shift = At.Shift.AFTER), cancellable = true)
+    @Inject(method = "beginLogin", at = @At("HEAD"), cancellable = true)
     private void silkard$throttle(ClientIntentionPacket packet, boolean transfer, CallbackInfo ci) {
         try {
             long currentTime = System.currentTimeMillis();

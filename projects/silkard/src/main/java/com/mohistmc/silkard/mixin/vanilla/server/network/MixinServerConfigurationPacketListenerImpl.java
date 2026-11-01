@@ -3,6 +3,7 @@ package com.mohistmc.silkard.mixin.vanilla.server.network;
 import com.mohistmc.silkard.injected.server.network.ContextServerCommonPacketListenerImpl;
 import com.mohistmc.silkard.injected.server.network.config.ContextPrepareSpawnTask;
 import java.net.SocketAddress;
+import java.util.concurrent.ExecutionException;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.PacketUtils;
 import net.minecraft.network.protocol.configuration.ServerboundAcceptCodeOfConductPacket;
@@ -21,6 +22,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -40,12 +42,34 @@ public class MixinServerConfigurationPacketListenerImpl {
 
     // CraftBukkit - PlayerLinksSendEvent before sending server links
     @Redirect(method = "startConfiguration", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;serverLinks()Lnet/minecraft/server/ServerLinks;"))
-    private ServerLinks silkard$serverLinks(MinecraftServer server) {
+    private ServerLinks silkard$serverLinks(MinecraftServer server) throws ExecutionException, InterruptedException {
         ServerLinks serverLinks = server.serverLinks();
         ServerPlayer player = ((ContextServerCommonPacketListenerImpl) (Object) this).silkard$player();
         if (player == null) {
             return serverLinks;
         }
+
+        // CraftBukkit - run on the server thread
+        if (server.isSameThread()) {
+            return silkard$sendServerLinks(serverLinks, player);
+        }
+
+        // CraftBukkit - this path runs on a Netty/fabric async thread. Blocking on the server
+        // processQueue is unsafe here (the main thread is not guaranteed to drain it during the
+        // configuration handshake), which deadlocks every joining client. Dispatch the event to the
+        // scheduler and return the original links so the handshake is never blocked.
+        server.execute(() -> {
+            try {
+                silkard$sendServerLinks(serverLinks, player);
+            } catch (Throwable t) {
+                // fire-and-forget; never let the event break the join handshake
+            }
+        });
+        return serverLinks;
+    }
+
+    @Unique
+    private ServerLinks silkard$sendServerLinks(ServerLinks serverLinks, ServerPlayer player) {
         CraftServerLinks wrapper = new CraftServerLinks(serverLinks);
         PlayerLinksSendEvent event = new PlayerLinksSendEvent(player.getBukkitEntity(), wrapper);
         player.getBukkitEntity().getServer().getPluginManager().callEvent(event);

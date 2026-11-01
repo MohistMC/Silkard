@@ -36,6 +36,10 @@ public interface ContextServerLevel extends ContextLevel {
         throw new ContextStateException("Not implemented");
     }
 
+    default void silkard$setStorageSource(LevelStorageSource.LevelStorageAccess storageSource) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default UUID silkard$uuid() {
         throw new ContextStateException("Not implemented");
     }

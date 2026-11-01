@@ -1,13 +1,12 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.gameevent;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
-import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.CraftGameEvent;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.event.block.BlockReceiveGameEvent;
@@ -22,14 +21,15 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinVibrationSystem$Listener {
 
     // CraftBukkit start - BlockReceiveGameEvent
-    @ModifyExpressionValue(method = "handleGameEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/gameevent/vibrations/VibrationSystem$User;canReceiveVibration(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Holder;Lnet/minecraft/world/level/gameevent/GameEvent$Context;)Z"))
-    private boolean silkard$receiveGameEvent(boolean original, @Local(argsOnly = true) ServerLevel level, @Local(argsOnly = true) Holder<GameEvent> event, @Local(argsOnly = true) GameEvent.Context context, @Local Vec3 position) {
+    @WrapOperation(method = "handleGameEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/gameevent/vibrations/VibrationSystem$User;canReceiveVibration(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Holder;Lnet/minecraft/world/level/gameevent/GameEvent$Context;)Z"))
+    private boolean silkard$receiveGameEvent(VibrationSystem.User instance, ServerLevel serverLevel, BlockPos blockPos, Holder<GameEvent> gameEventHolder, GameEvent.Context context, Operation<Boolean> original) {
+        boolean canReceive = original.call(instance, serverLevel, blockPos, gameEventHolder, context);
         BlockReceiveGameEvent bukkitEvent = new BlockReceiveGameEvent(
-                CraftGameEvent.minecraftToBukkit(event.value()),
-                CraftBlock.at(level, BlockPos.containing(position)),
+                CraftGameEvent.minecraftToBukkit(gameEventHolder.value()),
+                CraftBlock.at(serverLevel, blockPos),
                 context.sourceEntity() == null ? null : context.sourceEntity().getBukkitEntity());
-        bukkitEvent.setCancelled(!original);
-        level.getCraftServer().getPluginManager().callEvent(bukkitEvent);
+        bukkitEvent.setCancelled(!canReceive);
+        serverLevel.getCraftServer().getPluginManager().callEvent(bukkitEvent);
         return !bukkitEvent.isCancelled();
     }
     // CraftBukkit end

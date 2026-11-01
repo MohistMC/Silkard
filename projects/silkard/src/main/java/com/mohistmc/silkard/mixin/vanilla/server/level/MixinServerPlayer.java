@@ -144,6 +144,139 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
         this.kickLeaveMessage = kickLeaveMessage;
     }
 
+    // CraftBukkit start - ContextServerPlayer accessors
+    @Unique
+    private String silkard$locale = "en_us";
+
+    @Unique
+    private Integer silkard$clientViewDistance;
+
+    @Override
+    public boolean silkard$initialized() {
+        return this.initialized;
+    }
+
+    @Override
+    public String silkard$locale() {
+        return this.silkard$locale;
+    }
+
+    @Override
+    public void silkard$setLocale(String locale) {
+        this.silkard$locale = locale;
+    }
+
+    @Override
+    public long silkard$timeOffset() {
+        return this.timeOffset;
+    }
+
+    @Override
+    public void silkard$timeOffset(long timeOffset) {
+        this.timeOffset = timeOffset;
+    }
+
+    @Override
+    public boolean silkard$relativeTime() {
+        return this.relativeTime;
+    }
+
+    @Override
+    public void silkard$relativeTime(boolean relativeTime) {
+        this.relativeTime = relativeTime;
+    }
+
+    @Override
+    public Component silkard$listName() {
+        return this.listName;
+    }
+
+    @Override
+    public void silkard$listName(Component listName) {
+        this.listName = listName;
+    }
+
+    @Override
+    public int silkard$listOrder() {
+        return this.listOrder;
+    }
+
+    @Override
+    public void silkard$listOrder(int listOrder) {
+        this.listOrder = listOrder;
+    }
+
+    @Override
+    public int silkard$newExp() {
+        return this.newExp;
+    }
+
+    @Override
+    public void silkard$newExp(int newExp) {
+        this.newExp = newExp;
+    }
+
+    @Override
+    public int silkard$newLevel() {
+        return this.newLevel;
+    }
+
+    @Override
+    public void silkard$newLevel(int newLevel) {
+        this.newLevel = newLevel;
+    }
+
+    @Override
+    public int silkard$newTotalExp() {
+        return this.newTotalExp;
+    }
+
+    @Override
+    public void silkard$newTotalExp(int newTotalExp) {
+        this.newTotalExp = newTotalExp;
+    }
+
+    @Override
+    public boolean silkard$keepLevel() {
+        return this.keepLevel;
+    }
+
+    @Override
+    public void silkard$keepLevel(boolean keepLevel) {
+        this.keepLevel = keepLevel;
+    }
+
+    @Override
+    public double silkard$maxHealthCache() {
+        return this.maxHealthCache;
+    }
+
+    @Override
+    public void silkard$maxHealthCache(double maxHealthCache) {
+        this.maxHealthCache = maxHealthCache;
+    }
+
+    @Override
+    public boolean silkard$joining() {
+        return this.joining;
+    }
+
+    @Override
+    public void silkard$setJoining(boolean joining) {
+        this.joining = joining;
+    }
+
+    @Override
+    public Integer silkard$clientViewDistance() {
+        return this.silkard$clientViewDistance;
+    }
+
+    @Override
+    public void silkard$setClientViewDistance(Integer clientViewDistance) {
+        this.silkard$clientViewDistance = clientViewDistance;
+    }
+    // CraftBukkit end
+
     // CraftBukkit start - per-player time / weather
     public long timeOffset = 0;
     public boolean relativeTime = true;
@@ -342,6 +475,16 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     @Override
     public boolean silkard$isImmobile() {
         return super.isImmobile() || !this.getBukkitEntity().isOnline();
+    }
+
+    @Override
+    public org.bukkit.Location silkard$compassTarget() {
+        return this.compassTarget;
+    }
+
+    @Override
+    public void silkard$compassTarget(org.bukkit.Location compassTarget) {
+        this.compassTarget = compassTarget;
     }
 
     @Override
