@@ -36,6 +36,7 @@ public interface ContextPlayer extends ContextLivingEntity {
     }
 
     default void causeFoodExhaustion(float f, EntityExhaustionEvent.ExhaustionReason reason) {
+        throw new ContextStateException("Not implemented");
     }
 
     default Entity getEntityOnShoulder(CompoundTag nbttagcompound) { // CraftBukkit void->boolean

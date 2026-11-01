@@ -12,4 +12,8 @@ public interface ContextPlayerBedSleepingProblem {
     default PlayerBedEnterEvent.BedEnterResult bukkit() {
         throw new ContextStateException("Not implemented");
     }
+
+    default void silkard$setBukkit(PlayerBedEnterEvent.BedEnterResult result) {
+        throw new ContextStateException("Not implemented");
+    }
 }

@@ -111,4 +111,14 @@ public class MixinAbstractBoat implements ContextAbstractBoat {
         this.silkard$lastLocation = vehicle.getLocation();
     }
     // CraftBukkit end
+
+    // CraftBukkit start - drop leash on destroy if leashed
+    @Inject(method = "remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V", at = @At("HEAD"))
+    private void silkard$dropLeashOnRemove(Entity.RemovalReason reason, CallbackInfo ci) {
+        AbstractBoat self = (AbstractBoat) (Object) this;
+        if (!self.level().isClientSide() && reason.shouldDestroy() && self.isLeashed()) {
+            self.dropLeash();
+        }
+    }
+    // CraftBukkit end
 }

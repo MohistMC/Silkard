@@ -25,4 +25,12 @@ public interface ContextAbstractFurnaceBlockEntity {
     default List<RecipeHolder<?>> silkard$dropExp(ServerPlayer entity, ItemStack itemStack, int amount) {
         throw new ContextStateException("Not implemented");
     }
+
+    default int silkard$getBurnDuration(ServerLevel world, ItemStack itemStack) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default void silkard$fireFurnaceStartSmelt(ServerLevel world, BlockPos pos) {
+        throw new ContextStateException("Not implemented");
+    }
 }

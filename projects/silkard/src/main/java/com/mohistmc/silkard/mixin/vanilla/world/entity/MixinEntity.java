@@ -80,6 +80,12 @@ public abstract class MixinEntity implements ContextEntity {
     public void discard(EntityRemoveEvent.Cause cause) {
         this.remove(Entity.RemovalReason.DISCARDED, cause);
     }
+
+    @Override
+    public void setRemoved(Entity.RemovalReason removalReason, EntityRemoveEvent.Cause cause) {
+        CraftEventFactory.callEntityRemoveEvent((Entity) (Object) this, cause);
+        ((Entity) (Object) this).setRemoved(removalReason);
+    }
     // CraftBukkit end
 
     // CraftBukkit - EntitySelector.pushableBy calls this; CB returns isPushable() here (the argument is intentionally ignored).
