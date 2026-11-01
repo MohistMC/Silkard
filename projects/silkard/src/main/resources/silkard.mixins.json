@@ -1,4 +1,4 @@
-﻿{
+{
   "required": true,
   "package": "com.mohistmc.silkard.mixin",
   "compatibilityLevel": "JAVA_25",
