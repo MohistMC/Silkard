@@ -1175,6 +1175,12 @@ public final class CraftServer implements Server {
                 //serverleveldata.isDebugWorld(), j, creator.environment() == Environment.NORMAL ? list : ImmutableList.of(), true, dimensiondatastorage, dataAndSettings.genSettings(), creator.environment(), generator, biomeProvider);
                 serverleveldata.isDebugWorld(), j, creator.environment() == Environment.NORMAL ? list : ImmutableList.of(), true);
 
+        ((com.mohistmc.silkard.injected.world.level.storage.ContextLevelStorageAccess) worldSession).silkard$setDimType(actualDimension);
+        ((com.mohistmc.silkard.injected.server.level.ContextServerLevel) internal).silkard$setStorageSource(worldSession);
+        ((com.mohistmc.silkard.injected.server.level.ContextServerLevel) internal).silkard$setEnvironment(creator.environment());
+        ((com.mohistmc.silkard.injected.server.level.ContextServerLevel) internal).silkard$setGenerator(generator, biomeProvider);
+        addWorld(internal.getWorld());
+
         if (!(worlds.containsKey(name.toLowerCase(Locale.ROOT)))) {
             return null;
         }
@@ -1948,6 +1954,12 @@ public final class CraftServer implements Server {
     @Override
     public File getWorldContainer() {
         return this.getServer().storageSource.getLevelDirectory().path().getParent().toFile();
+    }
+
+    @Override
+    public File getPluginsFolder() {
+        File pluginsOption = (File) console.silkard_options().valueOf("plugins");
+        return pluginsOption != null ? pluginsOption : new File("plugins");
     }
 
     @Override

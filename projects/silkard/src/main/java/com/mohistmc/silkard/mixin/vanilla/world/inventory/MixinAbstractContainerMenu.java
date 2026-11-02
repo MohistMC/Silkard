@@ -78,7 +78,7 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
 
     // CraftBukkit start
     public boolean checkReachable = true;
-    // Youer start
+    // Silkard start
     public InventoryView bukkitView;
     public Player containerOwner = null;
 

@@ -1,0 +1,68 @@
+package com.mohistmc.silkard.commands;
+
+import com.mohistmc.silkard.util.I18n;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Useful when no permission management plugin is installed.
+ */
+public class PermissionCommand extends Command {
+
+    private final List<String> params = List.of("check");
+
+    public PermissionCommand(String name) {
+        super(name);
+        this.description = I18n.as("permissioncmd.description");
+        this.usageMessage = "/permission <check>";
+        this.setPermission("silkard.command.permission");
+    }
+
+    @Override
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, String[] args) {
+        if (!testPermission(sender)) {
+            return true;
+        }
+        if (args.length == 0) {
+            sender.sendMessage(I18n.as("commands.usage", usageMessage));
+            return false;
+        }
+
+        if (args[0].toLowerCase(Locale.ENGLISH).equals("check")) {
+            if (args.length != 3) {
+                sender.sendMessage(I18n.as("permissioncmd.usage.check"));
+                return false;
+            }
+            String permission = args[2];
+            Player player = Bukkit.getPlayer(args[1]);
+            if (player != null) {
+                sender.sendMessage(player.hasPermission(permission) ? I18n.as("permissioncmd.true") : I18n.as("permissioncmd.false"));
+            } else {
+                sender.sendMessage(I18n.as("silkardcmd.playermods.playernotOnline", args[1]));
+            }
+        } else {
+            sender.sendMessage(I18n.as("commands.usage", usageMessage));
+            return false;
+        }
+        return false;
+    }
+
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
+        List<String> list = new ArrayList<>();
+        if (args.length == 1 && (sender.isOp() || testPermission(sender))) {
+            for (String param : params) {
+                if (param.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    list.add(param);
+                }
+            }
+        }
+
+        return list;
+    }
+}

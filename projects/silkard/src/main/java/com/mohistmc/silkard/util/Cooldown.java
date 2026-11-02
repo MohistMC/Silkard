@@ -1,0 +1,68 @@
+package com.mohistmc.silkard.util;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Cooldown {
+
+    private static final Map<String, Cooldown> cooldowns = new ConcurrentHashMap<>();
+    private final int timeInSeconds;
+    private final UUID id;
+    private final String cooldownName;
+    private long start;
+
+    public Cooldown(final UUID id, final String cooldownName, final int timeInSeconds) {
+        this.id = id;
+        this.cooldownName = cooldownName;
+        this.timeInSeconds = timeInSeconds;
+    }
+
+    public static boolean isInCooldown(final UUID id, final String cooldownName) {
+        if (getTimeLeft(id, cooldownName) >= 1) {
+            return true;
+        }
+        stop(id, cooldownName);
+        return false;
+    }
+
+    private static void stop(final UUID id, final String cooldownName) {
+        Cooldown.cooldowns.remove(String.valueOf(id) + cooldownName);
+    }
+
+    private static Cooldown getCooldown(final UUID id, final String cooldownName) {
+        return Cooldown.cooldowns.get(id.toString() + cooldownName);
+    }
+
+    public static int getTimeLeft(final UUID id, final String cooldownName) {
+        final Cooldown cooldown = getCooldown(id, cooldownName);
+        int f = -1;
+        if (cooldown != null) {
+            final long now = System.currentTimeMillis();
+            final long cooldownTime = cooldown.start;
+            final int totalTime = cooldown.timeInSeconds;
+            final int r = (int) (now - cooldownTime) / 1000;
+            f = (r - totalTime) * -1;
+        }
+        return f;
+    }
+
+    public static void cleanExpired() {
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<String, Cooldown>> it = Cooldown.cooldowns.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Cooldown> entry = it.next();
+            Cooldown c = entry.getValue();
+            long elapsed = (now - c.start) / 1000;
+            if (elapsed >= c.timeInSeconds) {
+                it.remove();
+            }
+        }
+    }
+
+    public void start() {
+        this.start = System.currentTimeMillis();
+        Cooldown.cooldowns.put(this.id.toString() + this.cooldownName, this);
+    }
+}

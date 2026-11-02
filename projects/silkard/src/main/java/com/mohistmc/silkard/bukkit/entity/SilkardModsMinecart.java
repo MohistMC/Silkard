@@ -4,6 +4,7 @@ import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftMinecart;
 
+
 public class SilkardModsMinecart extends CraftMinecart {
 
     public SilkardModsMinecart(CraftServer server, AbstractMinecart entity) {

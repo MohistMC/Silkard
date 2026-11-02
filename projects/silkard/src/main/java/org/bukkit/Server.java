@@ -1232,6 +1232,9 @@ public interface Server extends PluginMessageRecipient {
     @NotNull
     public File getWorldContainer();
 
+    @NotNull
+    public File getPluginsFolder();
+
     /**
      * Gets every player that has ever played on this server.
      *

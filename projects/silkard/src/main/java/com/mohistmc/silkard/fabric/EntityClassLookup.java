@@ -17,7 +17,6 @@ import com.mohistmc.silkard.bukkit.entity.SilkardModsProjectileEntity;
 import com.mohistmc.silkard.bukkit.entity.SilkardModsRaider;
 import com.mohistmc.silkard.bukkit.entity.SilkardModsSkeleton;
 import com.mohistmc.silkard.bukkit.entity.SilkardModsThrowableProjectile;
-import com.mohistmc.silkard.bukkit.entity.SilkardModsThrownPotion;
 import com.mohistmc.silkard.bukkit.entity.SilkardModsVehicle;
 import com.mohistmc.silkard.bukkit.entity.SilkardModsWindCharge;
 import java.util.HashMap;
@@ -438,6 +437,21 @@ public class EntityClassLookup {
         registerEntity(Strider.class, (server, entity) -> new CraftStrider(server, (Strider) entity));
         registerEntity(Zoglin.class, (server, entity) -> new CraftZoglin(server, (Zoglin) entity));
         registerEntity(PiglinBrute.class, (server, entity) -> new CraftPiglinBrute(server, (PiglinBrute) entity));
+        // fallback chains for mod entities
+        registerEntity(Animal.class, (server, entity) -> new CraftAnimals(server, (Animal) entity));
+        registerEntity(AbstractGolem.class, (server, entity) -> new CraftGolem(server, (AbstractGolem) entity));
+        registerEntity(TamableAnimal.class, (server, entity) -> new CraftTameableAnimal(server, (TamableAnimal) entity));
+        registerEntity(WaterAnimal.class, (server, entity) -> new CraftWaterMob(server, (WaterAnimal) entity));
+        registerEntity(AmbientCreature.class, (server, entity) -> new CraftAmbient(server, (AmbientCreature) entity));
+        registerEntity(AbstractFish.class, (server, entity) -> new CraftFish(server, (AbstractFish) entity));
+        registerEntity(HangingEntity.class, (server, entity) -> new CraftHanging(server, (HangingEntity) entity));
+        registerEntity(Cushion.class, (server, entity) -> new CraftCushion(server, (Cushion) entity));
+        registerEntity(Display.class, (server, entity) -> new CraftDisplay(server, (Display) entity));
+        registerEntity(AgeableMob.class, (server, entity) -> new CraftAgeable(server, (AgeableMob) entity));
+        registerEntity(PathfinderMob.class, (server, entity) -> new CraftCreature(server, (PathfinderMob) entity));
+        registerEntity(SpellcasterIllager.class, (server, entity) -> new CraftSpellcaster(server, (SpellcasterIllager) entity));
+        registerEntity(AbstractIllager.class, (server, entity) -> new CraftIllager(server, (AbstractIllager) entity));
+        registerEntity(Monster.class, (server, entity) -> new CraftMonster(server, (Monster) entity));
         registerEntity(AbstractSkeleton.class, (server, entity) -> new SilkardModsSkeleton(server, (AbstractSkeleton) entity));
         registerEntity(AbstractCow.class, (server, entity) -> new SilkardModsAbstractCow(server, (AbstractCow) entity));
         registerEntity(AbstractCubeMob.class, (server, entity) -> new SilkardModsAbstractCubeMob(server, (AbstractCubeMob) entity));
@@ -451,7 +465,6 @@ public class EntityClassLookup {
         registerEntity(Raider.class, (server, entity) -> new SilkardModsRaider(server, (Raider) entity));
         registerEntity(AbstractArrow.class, (server, entity) -> new SilkardModsAbstractArrow(server, (AbstractArrow) entity));
         registerEntity(ThrowableItemProjectile.class, (server, entity) -> new SilkardModsThrowableProjectile(server, (ThrowableItemProjectile) entity));
-        registerEntity(AbstractThrownPotion.class, (server, entity) -> new SilkardModsThrownPotion(server, (AbstractThrownPotion) entity));
         registerEntity(AbstractWindCharge.class, (server, entity) -> new SilkardModsWindCharge(server, (AbstractWindCharge) entity));
         registerEntity(VehicleEntity.class, (server, entity) -> new SilkardModsVehicle(server, (VehicleEntity) entity));
         registerEntity(Mob.class, (server, entity) -> new SilkardModsMob(server, (Mob) entity));

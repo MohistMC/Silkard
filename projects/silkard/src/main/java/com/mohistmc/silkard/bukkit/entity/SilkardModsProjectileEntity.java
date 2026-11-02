@@ -15,3 +15,4 @@ public class SilkardModsProjectileEntity extends CraftProjectile {
         return "SilkardModsProjectileEntity{" + getType() + '}';
     }
 }
+

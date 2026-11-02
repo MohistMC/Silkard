@@ -756,6 +756,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
 
             ((ContextServerLevel) world).silkard$setEnvironment(org.bukkit.World.Environment.getEnvironment(dimension));
             ((ContextServerLevel) world).silkard$setGenerator(gen, biomeProvider);
+            this.server.addWorld(((ContextLevel) world).getWorld());
             worlddata.setModdedInfo(this.getServerModName(), this.getModdedStatus().shouldReportAsModified());
             this.initWorld(world, serverleveldata, worlddata, worldoptions);
 
@@ -1050,6 +1051,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         this.worldLoader = MainHook.worldLoader(); // CraftBukkit - from Main capture
         if (worldStem != null) {
             this.vanillaCommandDispatcher = worldStem.dataPackResources().getCommands(); // CraftBukkit
+            com.mohistmc.silkard.commands.SilkardCommands.registerVanilla(this.vanillaCommandDispatcher.getDispatcher());
         }
         // CraftBukkit start - reuse TerminalConsoleAppender's terminal; a second JLine terminal breaks console input
         this.terminal = net.minecrell.terminalconsole.TerminalConsoleAppender.getTerminal();

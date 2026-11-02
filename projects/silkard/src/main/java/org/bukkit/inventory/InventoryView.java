@@ -155,7 +155,7 @@ public interface InventoryView {
     public HumanEntity getPlayer();
 
     /**
-     * Youer Add
+     * Silkard Add
      * Get the player viewing.
      *
      * @return the player

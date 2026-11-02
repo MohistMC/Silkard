@@ -1,0 +1,35 @@
+package com.mohistmc.silkard.api.gui;
+
+/**
+ * @author LSeng
+ */
+public enum GUIType {
+
+    ONEBYNINE(1),
+    TWOBYNINE(2),
+    THREEBYNINE(3),
+    FOURBYNINE(4),
+    FIVEBYNINE(5),
+    SIXBYNINE(6),
+    UNKNOWN(-1),
+    CANCEL(0);
+
+    private final int rows;
+
+    GUIType(int rows) {
+        this.rows = rows;
+    }
+
+    public static GUIType fromRows(int rows) {
+        for (GUIType type : values()) {
+            if (type.getRows() == rows) {
+                return type;
+            }
+        }
+        return UNKNOWN;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+}

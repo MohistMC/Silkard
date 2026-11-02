@@ -238,6 +238,11 @@ public class SimpleCommandMap implements CommandMap {
         return Collections.unmodifiableCollection(knownCommands.values());
     }
 
+    @NotNull
+    public Map<String, Command> getKnownCommands() {
+        return knownCommands;
+    }
+
     public void registerServerAliases() {
         Map<String, String[]> values = server.getCommandAliases();
 

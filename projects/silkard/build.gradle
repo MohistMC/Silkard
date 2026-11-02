@@ -49,6 +49,9 @@ dependencies {
 	include(implementation("com.mohistmc:mixin-tools:1.2.7"){
 		exclude group: 'org.spongepowered'
 	})
+	include(implementation("com.mohistmc:tools:0.6.3"))
+	include(implementation("net.java.dev.jna:jna:5.12.1"))
+	include(implementation("com.github.luben:zstd-jni:1.5.7-11"))
 	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.3")))
 	// LibraryLoader start
 	implementation 'org.checkerframework:checker-qual:3.33.0'
@@ -64,6 +67,8 @@ dependencies {
 	include(implementation('org.codehaus.plexus:plexus-interpolation:1.29'))
 	include(implementation('org.eclipse.sisu:org.eclipse.sisu.inject:1.0.0'))
 	include(implementation('javax.inject:javax.inject:1'))
+	include(implementation('org.xerial:sqlite-jdbc:3.51.3.0'))
+	include(implementation('com.mysql:mysql-connector-j:9.6.0'))
 	include(implementation('org.apache.maven:maven-artifact:3.9.14'))
 	include(implementation('org.apache.maven:maven-builder-support:3.9.14'))
 	include(implementation('org.apache.maven:maven-model:3.9.14'))

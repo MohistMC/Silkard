@@ -24,5 +24,15 @@ public class SilkardMod implements ModInitializer {
 		// Registries are complete only after every mod initializer has run.
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server ->
 				com.mohistmc.silkard.fabric.FabricInjectBukkit.init());
+		// Commands and feature tasks register after the CraftServer is fully built
+		// (Bukkit.getServer() is non-null only from SERVER_STARTED onwards).
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			org.bukkit.Server bukkitServer = org.bukkit.Bukkit.getServer();
+			if (bukkitServer != null) {
+				com.mohistmc.silkard.feature.SilkardPlugin.registerAllCommands(
+						((org.bukkit.craftbukkit.CraftServer) bukkitServer).getCommandMap());
+				com.mohistmc.silkard.feature.SilkardPlugin.init();
+			}
+		});
 	}
 }

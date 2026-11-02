@@ -2,6 +2,7 @@ package org.bukkit.craftbukkit.block;
 
 import com.google.common.base.Preconditions;
 import com.mohistmc.silkard.bukkit.BukkitUtils;
+import com.mohistmc.silkard.bukkit.block.SilkardModsBlockEntityState;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -121,11 +122,19 @@ public final class CraftBlockStates {
     }
 
     private static final Map<Material, BlockStateFactory<?>> FACTORIES = new HashMap<>();
+
+    private static final String VANILLA_BLOCK_ENTITY_PKG = "net.minecraft.world.level.block.entity.";
+
     private static final BlockStateFactory<?> DEFAULT_FACTORY = new BlockStateFactory<CraftBlockState>(CraftBlockState.class) {
         @Override
         public CraftBlockState createBlockState(World world, BlockPos blockPosition, net.minecraft.world.level.block.state.BlockState blockData, BlockEntity tileEntity) {
             // SPIGOT-6754, SPIGOT-6817: Restore previous behaviour for tile entities with removed blocks (loot generation post-destroy)
             if (tileEntity != null) {
+                // Fabric mod BlockEntity → generic wrapper that extends CraftBlockEntityState
+                String pkg = tileEntity.getClass().getName();
+                if (!pkg.startsWith(VANILLA_BLOCK_ENTITY_PKG)) {
+                    return new SilkardModsBlockEntityState(world, tileEntity);
+                }
                 // block with unhandled TileEntity:
                 return new CraftBlockEntityState<>(world, tileEntity);
             }

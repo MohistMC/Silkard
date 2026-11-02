@@ -180,7 +180,7 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     @Override
     public UUID silkard$uuid() {
         if (this.uuid == null) {
-            this.uuid = UUID.nameUUIDFromBytes(("silkard-world:" + this.serverLevelData.getLevelName()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            this.uuid = UUID.nameUUIDFromBytes(("silkard-world:" + ((ServerLevel) (Object) this).dimension().identifier()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
         return this.uuid;
     }

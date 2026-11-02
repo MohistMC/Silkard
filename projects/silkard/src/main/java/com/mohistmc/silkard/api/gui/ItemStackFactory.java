@@ -1,0 +1,168 @@
+package com.mohistmc.silkard.api.gui;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+
+/**
+ * @author LSeng
+ */
+public class ItemStackFactory {
+
+    ItemStack item;
+    Player player;
+
+    public ItemStackFactory(String typeOrKey) {
+        this(Material.matchMaterial(typeOrKey), 1);
+    }
+
+    public ItemStackFactory(Material type) {
+        this(type, 1);
+    }
+
+    public ItemStackFactory(String typeOrKey, int amount) {
+        this(Material.matchMaterial(typeOrKey), amount);
+    }
+
+    public ItemStackFactory(Material type, int amount) {
+        this.item = new ItemStack(type, amount);
+    }
+
+    public ItemStackFactory(ItemStack item) {
+        this.item = item.clone();
+    }
+
+    public ItemStack build() {
+        return this.item;
+    }
+
+    public ItemStackFactory setDisplayName(String name) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.setDisplayName(name);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory setEnchantment(Enchantment enchantment) {
+        return setEnchantment(enchantment, 1);
+    }
+
+    public ItemStackFactory setEnchantment(Enchantment enchantment, int level) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null || enchantment == null) {
+            return this;
+        }
+        im.addEnchant(enchantment, level, false);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory setLore(List<String> lores) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.setLore(new ArrayList<>(lores));
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory addLore(String lore) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        List<String> lores = im.getLore();
+        if (lores == null) {
+            lores = new ArrayList<>();
+        }
+        lores.add(lore);
+        im.setLore(lores);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory customModelData(int customModelData) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.setCustomModelData(customModelData);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory hideTooltip() {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.setHideTooltip(true);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory player(Player player) {
+        this.player = player;
+        return this;
+    }
+
+    public ItemStackFactory setAmount(int amount) {
+        item.setAmount(amount);
+        return this;
+    }
+
+    public ItemStackFactory setDurability(short durability) {
+        item.setDurability(durability);
+        return this;
+    }
+
+    public ItemStackFactory addItemFlags(ItemFlag... itemFlags) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.addItemFlags(itemFlags);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory addItemRarity(ItemRarity rarity) {
+        ItemMeta im = this.item.getItemMeta();
+        if (im == null) {
+            return this;
+        }
+        im.setRarity(rarity);
+        this.item.setItemMeta(im);
+        return this;
+    }
+
+    public ItemStackFactory head(String base64) {
+        return this;
+    }
+
+    public ItemStack buildHead() {
+        if (!isSkull()) {
+            this.item = new ItemStack(Material.PLAYER_HEAD);
+        }
+        if (player != null && this.item.getItemMeta() instanceof SkullMeta meta) {
+            meta.setOwningPlayer(player);
+            this.item.setItemMeta(meta);
+        }
+        return this.item;
+    }
+
+    public boolean isSkull() {
+        return item.getType() == Material.PLAYER_HEAD;
+    }
+}

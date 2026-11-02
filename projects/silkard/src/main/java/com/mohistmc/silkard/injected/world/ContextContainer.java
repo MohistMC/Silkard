@@ -1,9 +1,12 @@
 package com.mohistmc.silkard.injected.world;
 
+import com.mohistmc.silkard.bukkit.inventory.InventoryOwner;
 import com.mohistmc.silkard.util.ContextStateException;
 import java.util.Collections;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.bukkit.craftbukkit.entity.CraftHumanEntity;
+import org.bukkit.inventory.InventoryHolder;
 
 public interface ContextContainer {
 
@@ -25,11 +28,22 @@ public interface ContextContainer {
         return Collections.emptyList();
     }
 
-    default org.bukkit.inventory.InventoryHolder getOwner() {
+    /**
+     * Returns the Bukkit InventoryHolder for this Container.
+     * For BlockEntity containers, delegates to {@link InventoryOwner}.
+     * Fabric mod containers that have a real Bukkit owner can override directly.
+     */
+    default InventoryHolder getOwner() {
+        if (this instanceof BlockEntity blockEntity) {
+            try {
+                return InventoryOwner.get(blockEntity);
+            } catch (RuntimeException ignored) {
+            }
+        }
         throw new ContextStateException("Not implemented");
     }
 
-    default void setOwner(org.bukkit.inventory.InventoryHolder owner) {
+    default void setOwner(InventoryHolder owner) {
         throw new ContextStateException("Not implemented");
     }
 
