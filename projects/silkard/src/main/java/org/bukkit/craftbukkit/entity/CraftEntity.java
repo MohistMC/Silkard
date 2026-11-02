@@ -103,7 +103,7 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
             return (CraftEntity) entityTypeData.convertFunction().apply(server, entity);
         }
 
-        throw new AssertionError("Unknown entity " + (entity == null ? null : entity.getClass()));
+        return com.mohistmc.silkard.fabric.EntityClassLookup.getEntity(server, entity);
     }
 
     @Override

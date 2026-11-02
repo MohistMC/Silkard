@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import net.minecraft.resources.Identifier;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -361,11 +362,55 @@ public enum EntityType implements Keyed, Translatable, RegistryAware {
      */
     UNKNOWN(null, null, -1, false);
 
+    private Identifier minecraftKey;
+    private net.minecraft.world.entity.EntityType<?> minecraftEntityType;
+
+    public void hookForgeEntity(Identifier key, net.minecraft.world.entity.EntityType<?> minecraftEntityType) {
+        this.minecraftKey = key;
+        this.minecraftEntityType = minecraftEntityType;
+        this.key = org.bukkit.craftbukkit.util.CraftNamespacedKey.fromMinecraft(key);
+        this.handleType = minecraftEntityType;
+        if (this.name != null) {
+            NAME_MAP.put(this.name.toLowerCase(Locale.ROOT), this);
+        }
+        ID_MAP.put(this.typeId, this);
+        com.mohistmc.silkard.fabric.FabricEntityRegistry.register(minecraftEntityType, this.name, this);
+        this.factory = bukkitLocation -> {
+            if (bukkitLocation == null || bukkitLocation.getWorld() == null) {
+                return null;
+            }
+            net.minecraft.server.level.ServerLevel serverLevel = ((org.bukkit.craftbukkit.CraftWorld) bukkitLocation.getWorld()).getHandle();
+            net.minecraft.world.entity.Entity entity = minecraftEntityType.create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+            if (entity != null) {
+                entity.snapTo(bukkitLocation.getX(), bukkitLocation.getY(), bukkitLocation.getZ(), bukkitLocation.getYaw(), bukkitLocation.getPitch());
+            }
+            return entity;
+        };
+    }
+
+    /**
+     * Creates the native entity for a modded type, or {@code null} for non-modded types.
+     */
+    public net.minecraft.world.entity.Entity create(Location location) {
+        return this.factory == null ? null : this.factory.apply(location);
+    }
+
+    public Identifier getMinecraftKey() {
+        return minecraftKey;
+    }
+
+    public net.minecraft.world.entity.EntityType<?> getMinecraftEntityType() {
+        return minecraftEntityType;
+    }
+
+
     private final String name;
     private final Class<? extends Entity> clazz;
     private final short typeId;
     private final boolean independent, living;
-    private final NamespacedKey key;
+    private NamespacedKey key;
+    private net.minecraft.world.entity.EntityType<?> handleType;
+    private java.util.function.Function<Location, ? extends net.minecraft.world.entity.Entity> factory;
 
     private static final Map<String, EntityType> NAME_MAP = new HashMap<String, EntityType>();
     private static final Map<Short, EntityType> ID_MAP = new HashMap<Short, EntityType>();

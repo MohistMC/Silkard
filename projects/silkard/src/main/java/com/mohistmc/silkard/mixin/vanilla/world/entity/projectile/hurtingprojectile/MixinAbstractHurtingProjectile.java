@@ -22,13 +22,13 @@ public class MixinAbstractHurtingProjectile implements ContextAbstractHurtingPro
 
     public void setDirection(double x, double y, double z) {
         Vec3 vec3 = new Vec3(x, y, z);
+        AbstractHurtingProjectile self = (AbstractHurtingProjectile) (Object) this;
         if (vec3.lengthSqr() == 0.0) {
-            this.setDeltaMovement(0.0, 0.0, 0.0);
+            self.setDeltaMovement(0.0, 0.0, 0.0);
             return;
         }
-        double speed = this.getDeltaMovement().length();
-        this.setDeltaMovement(vec3.normalize().scale(speed));
-        this.needsSync = true;
+        double speed = self.getDeltaMovement().length();
+        self.setDeltaMovement(vec3.normalize().scale(speed));
     }
 
     public float silkard$bukkitYield() {

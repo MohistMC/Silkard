@@ -6,10 +6,13 @@ import org.bukkit.entity.SpawnCategory;
 public class CraftSpawnCategory {
 
     public static boolean isValidForLimits(SpawnCategory spawnCategory) {
-        return spawnCategory != null && spawnCategory != SpawnCategory.MISC;
+        return spawnCategory != null && !spawnCategory.isMods && spawnCategory.ordinal() < SpawnCategory.MISC.ordinal();
     }
 
     public static String getConfigNameSpawnLimit(SpawnCategory spawnCategory) {
+        if (spawnCategory.isMods) {
+            return "spawn-limits.mods." + spawnCategory.name().toLowerCase();
+        }
         return switch (spawnCategory) {
             case MONSTER -> "spawn-limits.monsters";
             case ANIMAL -> "spawn-limits.animals";
@@ -23,6 +26,9 @@ public class CraftSpawnCategory {
     }
 
     public static String getConfigNameTicksPerSpawn(SpawnCategory spawnCategory) {
+        if (spawnCategory.isMods) {
+            return "ticks-per." + spawnCategory.name().toLowerCase();
+        }
         return switch (spawnCategory) {
             case MONSTER -> "ticks-per.monster-spawns";
             case ANIMAL -> "ticks-per.animal-spawns";
@@ -53,11 +59,14 @@ public class CraftSpawnCategory {
             case WATER_AMBIENT -> SpawnCategory.WATER_AMBIENT;
             case UNDERGROUND_WATER_CREATURE -> SpawnCategory.WATER_UNDERGROUND_CREATURE;
             case MISC -> SpawnCategory.MISC;
-            default -> throw new UnsupportedOperationException("Unknown EnumCreatureType " + enumCreatureType + " for SpawnCategory");
+            default -> SpawnCategory.valueOf(enumCreatureType.name());
         };
     }
 
     public static MobCategory toNMS(SpawnCategory spawnCategory) {
+        if (spawnCategory.isMods) {
+            return com.mohistmc.silkard.fabric.FabricInjectBukkit.CATEGORYSPAWNMAP.get(spawnCategory);
+        }
         return switch (spawnCategory) {
             case MONSTER -> MobCategory.MONSTER;
             case ANIMAL -> MobCategory.CREATURE;
@@ -67,7 +76,7 @@ public class CraftSpawnCategory {
             case WATER_AMBIENT -> MobCategory.WATER_AMBIENT;
             case WATER_UNDERGROUND_CREATURE -> MobCategory.UNDERGROUND_WATER_CREATURE;
             case MISC -> MobCategory.MISC;
-            default -> throw new UnsupportedOperationException("Unknown SpawnCategory " + spawnCategory + " for EnumCreatureType");
+            default -> MobCategory.valueOf(spawnCategory.name());
         };
     }
 

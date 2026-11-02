@@ -295,11 +295,20 @@ public abstract class CraftRegionAccessor implements RegionAccessor {
 
     @Override
     public Entity spawnEntity(Location location, EntityType entityType) {
-        return spawn(location, entityType.getEntityClass());
+        return spawnEntity(location, entityType, false);
     }
 
     @Override
     public Entity spawnEntity(Location loc, EntityType type, boolean randomizeData) {
+        net.minecraft.world.entity.Entity modded = type.create(loc);
+        if (modded != null) {
+            net.minecraft.server.level.ServerLevel level = getHandle().getMinecraftWorld();
+            if (!org.bukkit.craftbukkit.event.CraftEventFactory.doEntityAddEventCalling(level, modded, CreatureSpawnEvent.SpawnReason.CUSTOM)) {
+                return null;
+            }
+            level.addFreshEntity(modded);
+            return modded.getBukkitEntity();
+        }
         return spawn(loc, type.getEntityClass(), null, CreatureSpawnEvent.SpawnReason.CUSTOM, randomizeData);
     }
 

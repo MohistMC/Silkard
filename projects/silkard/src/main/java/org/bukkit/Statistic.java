@@ -98,7 +98,7 @@ public enum Statistic implements Keyed {
     NAUTILUS_ONE_CM;
 
     private final Type type;
-    private final NamespacedKey key;
+    public NamespacedKey key;
 
     private Statistic() {
         this(Type.UNTYPED);

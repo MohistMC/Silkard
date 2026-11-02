@@ -20,5 +20,9 @@ public class SilkardMod implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Silkard world!");
+
+		// Registries are complete only after every mod initializer has run.
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server ->
+				com.mohistmc.silkard.fabric.FabricInjectBukkit.init());
 	}
 }

@@ -207,7 +207,7 @@ public enum Particle implements Keyed, RegistryAware {
     RESET_MOB_GROWTH("reset_mob_growth"),
     ;
 
-    private final NamespacedKey key;
+    private NamespacedKey key;
     private final Class<?> dataType;
     final boolean register;
 
@@ -231,6 +231,13 @@ public enum Particle implements Keyed, RegistryAware {
         }
         dataType = data;
         this.register = register;
+    }
+
+    /**
+     * Assigns the real registry key for a modded particle.
+     */
+    public void hookModParticle(net.minecraft.resources.Identifier id) {
+        this.key = org.bukkit.craftbukkit.util.CraftNamespacedKey.fromMinecraft(id);
     }
 
     /**

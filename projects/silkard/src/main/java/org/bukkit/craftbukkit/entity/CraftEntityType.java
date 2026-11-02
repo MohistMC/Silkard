@@ -17,6 +17,11 @@ public class CraftEntityType {
     public static EntityType minecraftToBukkit(net.minecraft.world.entity.EntityType<?> minecraft) {
         Preconditions.checkArgument(minecraft != null);
 
+        EntityType modded = com.mohistmc.silkard.fabric.FabricEntityRegistry.bukkit(minecraft);
+        if (modded != null) {
+            return modded;
+        }
+
         net.minecraft.core.Registry<net.minecraft.world.entity.EntityType<?>> registry = CraftRegistry.getMinecraftRegistry(Registries.ENTITY_TYPE);
         EntityType bukkit = Registry.ENTITY_TYPE.get(CraftNamespacedKey.fromMinecraft(registry.getResourceKey(minecraft).orElseThrow().identifier()));
 
@@ -27,6 +32,10 @@ public class CraftEntityType {
 
     public static net.minecraft.world.entity.EntityType<?> bukkitToMinecraft(EntityType bukkit) {
         Preconditions.checkArgument(bukkit != null);
+
+        if (bukkit.getMinecraftEntityType() != null) {
+            return bukkit.getMinecraftEntityType();
+        }
 
         return CraftRegistry.getMinecraftRegistry(Registries.ENTITY_TYPE)
                 .getOptional(CraftNamespacedKey.toMinecraft(bukkit.getKey())).orElseThrow();

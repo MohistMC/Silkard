@@ -132,6 +132,7 @@ public abstract class MixinPlayerList implements ContextPlayerList {
             // CraftServer 构造函数已调用 Bukkit.setServer，这里再调会触发单例重定义异常
         }
         this.players = new CopyOnWriteArrayList<>();
+        com.mohistmc.silkard.fabric.FabricInjectBukkit.reloadBukkitRegistries();
     }
     // CraftBukkit end
 

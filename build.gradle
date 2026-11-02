@@ -40,7 +40,7 @@ java {
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 25
     it.options.encoding = 'UTF-8'
-    //it.options.warnings = false
+    it.options.warnings = false
     options.compilerArgs += "-Xlint:-removal"
 }
 

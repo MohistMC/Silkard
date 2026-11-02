@@ -95,6 +95,7 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     private WeatherData weatherData;
     private TimerQueue<MinecraftServer> scheduledEvents;
     private ServerClockManager clockManager;
+    @Unique private SavedDataStorage savedDataStorage;
 
     public WorldGenSettings getWorldGenSettings() {
         return this.worldGenSettings != null ? this.worldGenSettings : ((ServerLevel) (Object) this).getServer().getWorldGenSettings();
@@ -440,10 +441,18 @@ public abstract class MixinServerLevel implements ContextServerLevel {
         return this.weatherData != null ? this.weatherData : ((ServerLevel) (Object) this).getServer().getWeatherData();
     }
 
+    @Unique
+    private boolean silkard$savedDataClosed;
+
     @Inject(method = "close", at = @At("TAIL"))
     private void silkard$closeDataStorage(CallbackInfo ci) {
-        if (this.getDataStorage() != null) {
-            this.getDataStorage().close();
+        if (this.savedDataStorage != null && !this.silkard$savedDataClosed) {
+            this.silkard$savedDataClosed = true;
+            try {
+                this.savedDataStorage.close();
+            } catch (IllegalStateException ignored) {
+                // already closed by another owner
+            }
         }
     }
 
