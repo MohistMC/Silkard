@@ -34,5 +34,8 @@ public class SilkardMod implements ModInitializer {
 				com.mohistmc.silkard.feature.SilkardPlugin.init();
 			}
 		});
+		// release the feature pools and the database handle, otherwise the JVM outlives the server
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server ->
+				com.mohistmc.silkard.feature.SilkardPlugin.shutdown());
 	}
 }

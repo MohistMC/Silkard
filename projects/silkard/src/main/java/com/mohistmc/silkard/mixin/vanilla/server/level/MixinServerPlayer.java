@@ -6,6 +6,8 @@ import net.minecraft.world.level.portal.TeleportTransition;
 
 import com.mojang.authlib.GameProfile;
 import java.util.Optional;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.util.CraftLocation;
@@ -547,6 +550,53 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
             cir.setReturnValue(null);
         }
         // 插件修改目标位置（tpEvent.getTo() != exit 时重建 transition）待传送链后续补齐
+    }
+    // CraftBukkit end
+
+    // CraftBukkit start
+    // the vanilla player source is anonymous and resolves to NullCommandSender
+    @Shadow
+    @Final
+    private CommandSource commandSource;
+
+    // one instance per player: broadcastToAdmins compares source identity
+    @Unique
+    private CommandSource silkard$bukkitCommandSource;
+
+    @Inject(method = "commandSource", at = @At("TAIL"), cancellable = true)
+    private void silkard$bukkitCommandSource(CallbackInfoReturnable<CommandSource> cir) {
+        if (this.silkard$bukkitCommandSource == null) {
+            CommandSource vanilla = this.commandSource;
+            ServerPlayer self = (ServerPlayer) (Object) this;
+            this.silkard$bukkitCommandSource = new CommandSource() {
+
+                @Override
+                public void sendSystemMessage(Component message) {
+                    vanilla.sendSystemMessage(message);
+                }
+
+                @Override
+                public boolean acceptsSuccess() {
+                    return vanilla.acceptsSuccess();
+                }
+
+                @Override
+                public boolean acceptsFailure() {
+                    return vanilla.acceptsFailure();
+                }
+
+                @Override
+                public boolean shouldInformAdmins() {
+                    return vanilla.shouldInformAdmins();
+                }
+
+                @Override
+                public CommandSender getBukkitSender(CommandSourceStack wrapper) {
+                    return self.getBukkitEntity();
+                }
+            };
+        }
+        cir.setReturnValue(this.silkard$bukkitCommandSource);
     }
     // CraftBukkit end
 }

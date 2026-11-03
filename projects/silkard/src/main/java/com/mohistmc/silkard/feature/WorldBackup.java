@@ -1,7 +1,6 @@
 package com.mohistmc.silkard.feature;
 
 import com.github.luben.zstd.ZstdOutputStream;
-import com.mohistmc.tools.NamedThreadFactory;
 import com.mohistmc.silkard.SilkardMod;
 import com.mohistmc.silkard.SilkardConfig;
 import com.mohistmc.silkard.bukkit.BukkitUtils;
@@ -30,7 +29,12 @@ import org.bukkit.command.CommandSender;
 
 public class WorldBackup {
 
-    private static final ScheduledExecutorService SCHEDULER = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("WorldBackup"));
+    // daemon: non-daemon pool threads block JVM exit after the server stops
+    private static final ScheduledExecutorService SCHEDULER = new ScheduledThreadPoolExecutor(1, r -> {
+        Thread thread = new Thread(r, "WorldBackup");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private static final int ZSTD_LEVEL = 15;
 
@@ -46,19 +50,19 @@ public class WorldBackup {
     }
 
     public static void stop() {
-        SCHEDULER.shutdown();
+        SCHEDULER.shutdownNow();
     }
 
     public static void backup(CommandSender sender) {
         sender.sendMessage(I18n.as("worldbackupcmd.notice.creatingWorldBackup"));
-        new Thread(() -> {
+        SCHEDULER.execute(() -> {
             try {
                 doBackup();
                 sender.sendMessage(I18n.as("worldbackupcmd.notice.worldComplete"));
             } catch (Exception e) {
                 SilkardMod.LOGGER.error("Failed to backup world.", e);
             }
-        }).start();
+        });
     }
 
     public static void backup() {

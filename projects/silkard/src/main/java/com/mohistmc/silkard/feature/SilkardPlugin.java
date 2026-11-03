@@ -69,6 +69,12 @@ public class SilkardPlugin {
         GlobalVariableSystem.register();
     }
 
+    public static void shutdown() {
+        EntityClear.stop();
+        WorldBackup.stop();
+        DatabaseManager.shutdown();
+    }
+
     public static void registerCommands(Map<String, Command> commands) {
         CommandsConfig.init();
         if (CommandsConfig.INSTANCE.enable("worlds.enable")) {
@@ -122,6 +128,8 @@ public class SilkardPlugin {
         for (Map.Entry<String, Command> entry : commands.entrySet()) {
             commandMap.register(entry.getKey(), "silkard", entry.getValue());
         }
+        // CraftBukkit - startup sync already ran; without it the brigadier tree misses these labels and sub-commands cannot tab-complete
+        ((org.bukkit.craftbukkit.CraftServer) org.bukkit.Bukkit.getServer()).syncCommands();
     }
 
     public static void registerListener(Event event) {

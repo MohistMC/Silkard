@@ -1,6 +1,5 @@
 package com.mohistmc.silkard.feature;
 
-import com.mohistmc.tools.NamedThreadFactory;
 import com.mohistmc.silkard.SilkardConfig;
 import com.mohistmc.silkard.bukkit.BukkitUtils;
 import java.util.Set;
@@ -20,8 +19,17 @@ import org.bukkit.entity.Monster;
  */
 public class EntityClear {
 
-    public static final ScheduledExecutorService ENTITYCLEAR_ITEM = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("EntityClear - Item"));
-    public static final ScheduledExecutorService ENTITYCLEAR_MONSTER = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("EntityClear - Monster"));
+    public static final ScheduledExecutorService ENTITYCLEAR_ITEM = daemonPool("EntityClear - Item");
+    public static final ScheduledExecutorService ENTITYCLEAR_MONSTER = daemonPool("EntityClear - Monster");
+
+    // daemon: non-daemon pool threads block JVM exit after the server stops
+    private static ScheduledExecutorService daemonPool(String name) {
+        return new ScheduledThreadPoolExecutor(1, r -> {
+            Thread thread = new Thread(r, name);
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
 
     public static void start() {
         if (SilkardConfig.clear_item) {
