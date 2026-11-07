@@ -1117,7 +1117,8 @@ public final class CraftServer implements Server {
         WorldLoader.DataLoadContext worldloader_dataloadcontext = console.silkard_worldLoader();
         RegistryAccess.Frozen registryaccess_frozen = worldloader_dataloadcontext.datapackDimensions();
         net.minecraft.core.Registry<LevelStem> registry = registryaccess_frozen.lookupOrThrow(Registries.LEVEL_STEM);
-        if (dynamic != null) {
+        // world_gen_settings.dat is written only after createLevels, so it is absent on first start
+        if (dynamic != null && java.nio.file.Files.exists(WorldGenSettings.TYPE.id().withSuffix(".dat").resolveAgainst(worldSession.getLevelPath(LevelResource.DATA)))) {
             LevelDataAndDimensions leveldataanddimensions = LevelStorageSource.getLevelDataAndDimensions(worldSession, dynamic, worldloader_dataloadcontext.dataConfiguration(), registry, worldloader_dataloadcontext.datapackWorldRegistries());
 
             dataAndSettings = leveldataanddimensions.worldDataAndGenSettings();

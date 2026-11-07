@@ -691,7 +691,8 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
             LevelDataAndDimensions.WorldDataAndGenSettings dataAndSettings;
             WorldLoader.DataLoadContext dataloadcontext = this.worldLoader;
             net.minecraft.core.Registry<LevelStem> registry = dataloadcontext.datapackDimensions().lookupOrThrow(Registries.LEVEL_STEM);
-            if (dynamic != null) {
+            // world_gen_settings.dat is written only after createLevels, so it is absent on first start
+            if (dynamic != null && java.nio.file.Files.exists(WorldGenSettings.TYPE.id().withSuffix(".dat").resolveAgainst(worldSession.getLevelPath(net.minecraft.world.level.storage.LevelResource.DATA)))) {
                 LevelDataAndDimensions leveldataanddimensions = LevelStorageSource.getLevelDataAndDimensions(worldSession, dynamic, dataloadcontext.dataConfiguration(), registry, dataloadcontext.datapackWorldRegistries());
                 dataAndSettings = leveldataanddimensions.worldDataAndGenSettings();
             } else {
