@@ -126,12 +126,13 @@ public abstract class MixinPlayerList implements ContextPlayerList {
     // CraftBukkit start - CraftServer construction (PlayerList.patch ctor hunk)
     @Inject(method = "<init>", at = @At("TAIL"))
     private void silkard$bukkitServerInit(MinecraftServer server, net.minecraft.core.LayeredRegistryAccess<net.minecraft.server.RegistryLayer> registries, net.minecraft.world.level.storage.PlayerDataStorage playerIo, net.minecraft.server.notifications.NotificationService notificationService, CallbackInfo ci) {
+        // replace before CraftServer runs: its playerView wraps the list instance captured at construction
+        this.players = new CopyOnWriteArrayList<>();
         if (((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard$server() == null) {
             ((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard$setServer(new org.bukkit.craftbukkit.CraftServer((net.minecraft.server.dedicated.DedicatedServer) (Object) this.server, (PlayerList) (Object) this));
             ((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard_console(org.bukkit.craftbukkit.command.ColouredConsoleSender.getInstance());
             // CraftServer 构造函数已调用 Bukkit.setServer，这里再调会触发单例重定义异常
         }
-        this.players = new CopyOnWriteArrayList<>();
         com.mohistmc.silkard.fabric.FabricInjectBukkit.reloadBukkitRegistries();
     }
     // CraftBukkit end
