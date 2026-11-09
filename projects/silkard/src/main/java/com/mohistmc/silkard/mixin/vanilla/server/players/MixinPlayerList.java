@@ -430,6 +430,10 @@ public abstract class MixinPlayerList implements ContextPlayerList {
         // CraftBukkit end
 
         // CraftBukkit start - sendAll above replaced with this loop
+        // registered before the loop: its own iteration is what sends the player's own list entry to the client
+        this.players.add(player);
+        this.playersByUUID.put(player.getUUID(), player);
+
         ClientboundPlayerInfoUpdatePacket packet = ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(player));
 
         for (int i = 0; i < this.players.size(); ++i) {
@@ -439,7 +443,7 @@ public abstract class MixinPlayerList implements ContextPlayerList {
                 serverplayer1.connection.send(packet);
             }
 
-            if (!bukkitPlayer.canSee(serverplayer1.getBukkitEntity())) {
+            if (serverplayer1 == player || !bukkitPlayer.canSee(serverplayer1.getBukkitEntity())) {
                 continue;
             }
 
@@ -447,10 +451,6 @@ public abstract class MixinPlayerList implements ContextPlayerList {
         }
         ((ContextServerPlayer) player).silkard$setSentListPacket(true);
         // CraftBukkit end
-
-        // CraftBukkit - vanilla registers the player with PlayerList before sendLevelInfo/addNewPlayer (was missing in this @Overwrite)
-        this.players.add(player);
-        this.playersByUUID.put(player.getUUID(), player);
 
         ((ContextEntity) player).refreshEntityData(player); // CraftBukkit - SPIGOT-7218
         ((PlayerList) (Object) this).sendLevelInfo(player, player.level()); // CraftBukkit - SPIGOT-8149 per-world time sync
