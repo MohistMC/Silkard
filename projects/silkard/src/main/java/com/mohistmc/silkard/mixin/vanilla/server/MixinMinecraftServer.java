@@ -1035,11 +1035,16 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         silkard$LOGGER.debug("Autosave finished");
     }
 
-    // CraftBukkit - empty-server branch: heartbeat + tickConnection (vanilla tickServer 已含 tickConnection, 这里只补心跳)
-    @Inject(method = "tickServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;autoSave()V"))
-    private void silkard$emptyServerHeartbeat(BooleanSupplier haveTime, CallbackInfo ci) {
-        if (this.server != null) {
-            this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
+    // CraftBukkit - empty-server pause skips tickChildren: keep scheduler and processQueue alive
+    @Inject(method = "tickServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;tickConnection()V"))
+    private void silkard$pausedServerTick(BooleanSupplier haveTime, CallbackInfo ci) {
+        if (this.server == null) {
+            return;
+        }
+        this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
+        Runnable task;
+        while ((task = this.processQueue.poll()) != null) {
+            task.run();
         }
     }
 
