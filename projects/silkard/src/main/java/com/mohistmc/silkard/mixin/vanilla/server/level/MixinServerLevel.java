@@ -246,6 +246,16 @@ public abstract class MixinServerLevel implements ContextServerLevel {
         return ((ServerLevel) (Object) this).addFreshEntity(entity);
     }
 
+    // CraftBukkit - 2-arg tryAdd, vanilla only ships the no-reason variant
+    @Override
+    public boolean tryAddFreshEntityWithPassengers(Entity entity, CreatureSpawnEvent.SpawnReason reason) {
+        if (entity.getSelfAndPassengers().map(Entity::getUUID).anyMatch(this.entityManager::isLoaded)) {
+            return false;
+        }
+        ((com.mohistmc.silkard.injected.world.level.ContextServerLevelAccessor) this).addFreshEntityWithPassengers(entity, reason);
+        return true;
+    }
+
     // CraftBukkit start - weather per world / per player
     @Inject(method = "prepareWeather", at = @At("HEAD"), cancellable = true)
     private void silkard$prepareWeather(WeatherData weatherData, CallbackInfo ci) {

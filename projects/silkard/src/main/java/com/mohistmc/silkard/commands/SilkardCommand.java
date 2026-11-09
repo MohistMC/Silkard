@@ -383,8 +383,8 @@ public class SilkardCommand extends Command {
 
                         sender.sendMessage(I18n.as("silkardcmd.showp.displayName", p2.getDisplayName()));
                         if (sender instanceof Player p1) {
-                            PlayerAPI.sendMessageByCopy(p1, I18n.as("silkardcmd.showp.uuid"), String.valueOf(p2.getUniqueId()));
-                            PlayerAPI.sendMessageByCopy(p1, I18n.as("silkardcmd.showp.ip"), p2.getAddress().getAddress().getHostAddress());
+                            PlayerAPI.sendMessageByCopy(p1, I18n.as("silkardcmd.showp.uuid", p2.getUniqueId()), String.valueOf(p2.getUniqueId()));
+                            PlayerAPI.sendMessageByCopy(p1, I18n.as("silkardcmd.showp.ip", p2.getAddress().getAddress().getHostAddress()), p2.getAddress().getAddress().getHostAddress());
                         } else {
                             sender.sendMessage(I18n.as("silkardcmd.showp.uuid", p2.getUniqueId()));
                             sender.sendMessage(I18n.as("silkardcmd.showp.ip", p2.getAddress().getAddress().getHostAddress()));
