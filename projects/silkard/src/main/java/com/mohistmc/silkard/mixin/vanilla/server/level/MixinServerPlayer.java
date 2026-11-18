@@ -83,10 +83,11 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
         super(level, gameProfile);
     }
 
-    // CraftBukkit - default display name is the scoreboard name
+    // CraftBukkit - init bukkit player fields
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void silkard$initDisplayName(MinecraftServer server, ServerLevel level, GameProfile gameProfile, net.minecraft.server.level.ClientInformation information, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+    private void silkard$initBukkitFields(MinecraftServer server, ServerLevel level, GameProfile gameProfile, net.minecraft.server.level.ClientInformation information, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         this.displayName = this.getScoreboardName();
+        this.silkard_bukkitPickUpLoot(true);
     }
 
     @Override
