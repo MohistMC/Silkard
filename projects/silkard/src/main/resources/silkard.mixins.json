@@ -321,6 +321,7 @@
     "vanilla.world.inventory.MixinCartographyTableMenu",
     "vanilla.world.inventory.MixinChestMenu",
     "vanilla.world.inventory.MixinContainerLevelAccess",
+    "vanilla.world.inventory.MixinContainerLevelAccess$Create",
     "vanilla.world.inventory.MixinCrafterMenu",
     "vanilla.world.inventory.MixinCraftingContainer",
     "vanilla.world.inventory.MixinCraftingMenu",
