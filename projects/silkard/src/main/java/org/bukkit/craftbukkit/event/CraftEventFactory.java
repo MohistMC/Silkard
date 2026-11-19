@@ -1883,7 +1883,8 @@ public class CraftEventFactory {
         for (int i1 = blockPositions.size() - 1; i1 >= 0; i1--) {
             BlockPos cpos = blockPositions.get(i1);
             org.bukkit.block.Block bblock = bworld.getBlockAt(cpos.getX(), cpos.getY(), cpos.getZ());
-            if (!bblock.getType().isAir()) {
+            org.bukkit.Material type = bblock.getType();
+            if (type == null || !type.isAir()) {
                 blockList.add(bblock);
             }
         }

@@ -25,7 +25,7 @@ public class MixinGoToWantedItem {
      * @reason CraftBukkit - EntityTargetEvent for Allay
      */
     @Overwrite
-    private static boolean lambda$create$3(Instance instance, MemoryAccessor lookTarget, MemoryAccessor walkTarget, Predicate predicate, int maxDistToWalk, float speedModifier, MemoryAccessor wantedItem, MemoryAccessor cooldown, ServerLevel level, LivingEntity body, long timestamp) {
+    private static boolean lambda$create$3(Instance instance, MemoryAccessor wantedItem, MemoryAccessor cooldown, Predicate predicate, int maxDistToWalk, float speedModifier, MemoryAccessor lookTarget, MemoryAccessor walkTarget, ServerLevel level, LivingEntity body, long timestamp) {
         ItemEntity item = (ItemEntity) instance.get(wantedItem);
         if (instance.tryGet(cooldown).isEmpty()
                 && predicate.test(body)

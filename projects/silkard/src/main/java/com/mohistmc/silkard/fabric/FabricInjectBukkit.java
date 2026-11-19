@@ -249,6 +249,10 @@ public class FabricInjectBukkit {
     }
 
     public static void addEnumMenuType() {
+        if (org.bukkit.Bukkit.getServer() == null) {
+            // Registry.<clinit> needs CraftServer; the PlayerList constructor retries this later.
+            return;
+        }
         int count = 0;
         for (net.minecraft.world.inventory.MenuType<?> menuType : BuiltInRegistries.MENU) {
             Identifier resourceLocation = BuiltInRegistries.MENU.getKey(menuType);
