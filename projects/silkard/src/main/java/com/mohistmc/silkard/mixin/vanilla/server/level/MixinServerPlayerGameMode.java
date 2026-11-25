@@ -21,6 +21,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DoubleHighBlockItem;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -436,6 +437,9 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
         this.interactHand = hand;
         this.interactItemStack = itemStack.copy();
         this.silkard$interactEvent = event;
+        if (event.useInteractedBlock() == Event.Result.DENY) {
+            this.silkard$correctBlock(blockstate, level, hitResult);
+        }
     }
 
     @Redirect(method = "useItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;openMenu(Lnet/minecraft/world/MenuProvider;)Ljava/util/OptionalInt;"))
@@ -454,7 +458,6 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
     @Redirect(method = "useItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;useItemOn(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"))
     private InteractionResult silkard$useItemOn(BlockState state, ItemStack stack, Level level, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (this.silkard$interactEvent != null && this.silkard$interactEvent.useInteractedBlock() == Event.Result.DENY) {
-            this.silkard$correctBlock(state, level, hitResult);
             return InteractionResult.PASS;
         }
         return state.useItemOn(stack, level, player, hand, hitResult);
@@ -463,7 +466,6 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
     @Redirect(method = "useItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;useWithoutItem(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"))
     private InteractionResult silkard$useWithoutItem(BlockState state, Level level, Player player, BlockHitResult hitResult) {
         if (this.silkard$interactEvent != null && this.silkard$interactEvent.useInteractedBlock() == Event.Result.DENY) {
-            this.silkard$correctBlock(state, level, hitResult);
             return InteractionResult.PASS;
         }
         return state.useWithoutItem(level, player, hitResult);
@@ -481,7 +483,9 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
             this.player.connection.send(new ClientboundBlockUpdatePacket(level, blockpos.relative(hitResult.getDirection()).above()));
             this.player.connection.send(new ClientboundBlockUpdatePacket(level, blockpos.above()));
         }
-        this.player.getBukkitEntity().updateInventory();
+        if (!(this.interactItemStack.getItem() instanceof BlockItem)) {
+            this.player.getBukkitEntity().updateInventory();
+        }
     }
     // CraftBukkit end
 }

@@ -280,6 +280,12 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
     @Unique private boolean silkard$hasMoved;
     // CraftBukkit end
 
+    // CraftBukkit - collision movement must not leave stale ground state
+    @Inject(method = "handlePlayerPositionChange", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.AFTER))
+    private void silkard$syncGroundState(double requestedX, double requestedY, double requestedZ, float requestedYRot, float requestedXRot, boolean isOnGround, boolean horizontalCollision, CallbackInfo ci) {
+        this.player.setOnGround(isOnGround);
+    }
+
     // CraftBukkit start - PlayerMoveEvent
     @Inject(method = "handlePlayerPositionChange", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;absSnapTo(DDDFF)V"))
     private void silkard$playerMoveEvent(double requestedX, double requestedY, double requestedZ, float requestedYRot, float requestedXRot, boolean isOnGround, boolean horizontalCollision, CallbackInfo ci) {
