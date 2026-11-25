@@ -74,8 +74,9 @@ public abstract class MixinAnvilMenu extends ItemCombinerMenu implements Context
         this.maximumRepairCost = maximumRepairCost;
     }
 
+    @Final
     @Shadow
-    private net.minecraft.world.inventory.DataSlot cost;
+    public net.minecraft.world.inventory.DataSlot cost;
 
     @Inject(method = "mayPickup", at = @At("HEAD"), cancellable = true)
     private void silkard$mayPickup(Player player, boolean hasItem, CallbackInfoReturnable<Boolean> cir) {

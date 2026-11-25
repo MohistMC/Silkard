@@ -215,14 +215,6 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
     }
 
     /**
-     * Redirect the original setCarried(EMPTY) after drop(-999) - it's already done above
-     */
-    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 2))
-    private void silkard$doClick$setCarried999(AbstractContainerMenu menu, ItemStack stack) {
-        // Already handled in drop redirect above - skip
-    }
-
-    /**
      * SPIGOT-8010: Creative mode loop break - check drop return value
      */
     @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;drop(Lnet/minecraft/world/item/ItemStack;ZLnet/minecraft/util/Prediction;)Lnet/minecraft/world/entity/item/ItemEntity;", ordinal = 3))
@@ -232,17 +224,9 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
     }
 
     /**
-     * SPIGOT-4556: Move setCarried before dropOrPlaceInInventory (removed slot)
+     * Drag event: Intercept slot.setByPlayer in the quickcraft section (ordinal 0)
      */
-    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 4))
-    private void silkard$doClick$setCarriedRemoved(AbstractContainerMenu menu, ItemStack stack) {
-        // Already set carried empty earlier - skip this duplicate
-    }
-
-    /**
-     * Drag event: Intercept slot.setByPlayer in quickcraft section
-     */
-    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;setByPlayer(Lnet/minecraft/world/item/ItemStack;)V"))
+    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;setByPlayer(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 0))
     private void silkard$doClick$setByPlayer(Slot slot, ItemStack stack) {
         // CraftBukkit - Store in draggedSlots map instead of setting directly
         silkard$draggedSlots.put(slot.index, stack);
@@ -253,12 +237,21 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
 
     /**
      * CraftBukkit - InventoryDragEvent handling
-     * Intercept the setCarried call right after the quickcraft slot iteration
-     * to replace it with full drag event logic
+     * Intercept the setCarried call right after the quickcraft slot iteration (ordinal 0)
      */
-    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 3))
+    @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 0))
     private void silkard$doClick$setCarriedDrag(AbstractContainerMenu menu, ItemStack carriedStack) {
         if (!silkard$draggedSlots.isEmpty()) {
+            Player player = containerOwner;
+            if (player == null) {
+                // no Bukkit owner: apply the drag without firing an event
+                for (Map.Entry<Integer, ItemStack> dslot : silkard$draggedSlots.entrySet()) {
+                    this.getSlot(dslot.getKey()).set(dslot.getValue());
+                }
+                this.setCarried(carriedStack);
+                silkard$draggedSlots.clear();
+                return;
+            }
             // CraftBukkit start - InventoryDragEvent
             InventoryView view = getBukkitView();
             org.bukkit.inventory.ItemStack newcursor = CraftItemStack.asCraftMirror(carriedStack);
@@ -272,7 +265,6 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
             ItemStack oldCursor = this.getCarried();
             this.setCarried(CraftItemStack.asNMSCopy(newcursor));
 
-            Player player = containerOwner;
             if (player != null) {
                 InventoryDragEvent event = new InventoryDragEvent(view,
                     (newcursor.getType() != org.bukkit.Material.AIR ? newcursor : null),

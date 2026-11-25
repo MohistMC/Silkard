@@ -47,6 +47,7 @@ public abstract class MixinInventoryMenu extends AbstractCraftingMenu {
     @Inject(method = "<init>(Lnet/minecraft/world/entity/player/Inventory;ZLnet/minecraft/world/entity/player/Player;)V", at = @At("RETURN"))
     private void silkard$init(Inventory inventory, boolean active, Player owner, CallbackInfo ci) {
         ((InventoryMenu) (Object) this).setTitle(net.minecraft.network.chat.Component.translatable("container.crafting"));
+        ((com.mohistmc.silkard.injected.world.inventory.ContextAbstractContainerMenu) (Object) this).containerOwner(owner);
     }
 
     @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)

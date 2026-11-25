@@ -13,6 +13,14 @@ public interface ContextContainer {
     int MAX_STACK = 99;
 
     default java.util.List<ItemStack> getContents() {
+        if (this instanceof net.minecraft.world.Container container) {
+            int size = container.getContainerSize();
+            java.util.List<ItemStack> items = new java.util.ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                items.add(container.getItem(i));
+            }
+            return items;
+        }
         return Collections.emptyList();
     }
 

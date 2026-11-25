@@ -110,8 +110,7 @@ public class CraftInventoryCrafting extends CraftInventory implements CraftingIn
 
     @Override
     public void setResult(ItemStack item) {
-        List<net.minecraft.world.item.ItemStack> contents = getResultInventory().getContents();
-        contents.set(0, CraftItemStack.asNMSCopy(item));
+        getResultInventory().setItem(0, CraftItemStack.asNMSCopy(item));
     }
 
     @Override

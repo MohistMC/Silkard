@@ -1,7 +1,10 @@
 package com.mohistmc.silkard.mixin.vanilla.world.inventory;
 
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractCraftingMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.ResultContainer;
@@ -16,6 +19,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 // craftSlots / resultSlots 由 AbstractCraftingMenu 声明（protected），@Shadow 命中不了
@@ -45,6 +49,11 @@ public abstract class MixinCraftingMenu extends AbstractCraftingMenu {
     }
     // CraftBukkit end
 
+    @Inject(method = "<init>(ILnet/minecraft/world/entity/player/Inventory;Lnet/minecraft/world/inventory/ContainerLevelAccess;)V", at = @At("RETURN"))
+    private void silkard$initOwner(int containerId, Inventory inventory, ContainerLevelAccess access, CallbackInfo ci) {
+        ((com.mohistmc.silkard.injected.world.inventory.ContextAbstractContainerMenu) (Object) this).containerOwner(this.player);
+    }
+
     @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)
     public void silkard$stillValid(net.minecraft.world.entity.player.Player player, CallbackInfoReturnable<Boolean> cir) {
         if (!silkard$checkReachable()) {
@@ -53,9 +62,9 @@ public abstract class MixinCraftingMenu extends AbstractCraftingMenu {
     }
 
     @Redirect(method = "slotChangedCraftingGrid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/ResultContainer;setItem(ILnet/minecraft/world/item/ItemStack;)V"))
-    private static void silkard$slotChangedCraftingGrid$setItem(ResultContainer resultSlots, int slot, ItemStack itemstack) {
+    private static void silkard$slotChangedCraftingGrid$setItem(ResultContainer resultSlots, int slot, ItemStack itemstack, @com.llamalad7.mixinextras.sugar.Local(argsOnly = true) CraftingContainer craftSlots) {
         // CraftBukkit - callPreCraftEvent
-        itemstack = org.bukkit.craftbukkit.event.CraftEventFactory.callPreCraftEvent(null, resultSlots, itemstack, null, java.util.Optional.empty());
+        itemstack = org.bukkit.craftbukkit.event.CraftEventFactory.callPreCraftEvent(craftSlots, resultSlots, itemstack, null, java.util.Optional.empty());
         resultSlots.setItem(slot, itemstack);
     }
 }
