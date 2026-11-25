@@ -46,6 +46,9 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
     @Nullable
     private MenuType<?> menuType;
 
+    @Shadow @Final
+    public net.minecraft.core.NonNullList<Slot> slots;
+
     @Shadow
     private ContainerSynchronizer synchronizer;
 
@@ -92,11 +95,29 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
         this.containerOwner = containerOwner;
     }
 
+    /**
+     * Menus do not always record their owner; fall back to the player inventory slots.
+     */
+    @Unique
+    public Player silkard$resolveOwner() {
+        if (this.containerOwner != null) {
+            return this.containerOwner;
+        }
+        for (Slot slot : this.slots) {
+            if (slot.container instanceof net.minecraft.world.entity.player.Inventory inventory && inventory.player != null) {
+                this.containerOwner = inventory.player;
+                return this.containerOwner;
+            }
+        }
+        return null;
+    }
+
     @Override
     public InventoryView getBukkitView() {
-        if (bukkitView == null && containerOwner != null) {
-            org.bukkit.inventory.Inventory view = new CraftInventory(new SilkardModsInventory((AbstractContainerMenu) (Object) this, containerOwner));
-            bukkitView = new CraftInventoryView<>(containerOwner.getBukkitEntity(), view, (AbstractContainerMenu) (Object) this);
+        Player owner = silkard$resolveOwner();
+        if (bukkitView == null && owner != null) {
+            org.bukkit.inventory.Inventory view = new CraftInventory(new SilkardModsInventory((AbstractContainerMenu) (Object) this, owner));
+            bukkitView = new CraftInventoryView<>(owner.getBukkitEntity(), view, (AbstractContainerMenu) (Object) this);
         }
         return bukkitView;
     }
@@ -242,7 +263,7 @@ public abstract class MixinAbstractContainerMenu implements ContextAbstractConta
     @Redirect(method = "doClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V", ordinal = 0))
     private void silkard$doClick$setCarriedDrag(AbstractContainerMenu menu, ItemStack carriedStack) {
         if (!silkard$draggedSlots.isEmpty()) {
-            Player player = containerOwner;
+            Player player = silkard$resolveOwner();
             if (player == null) {
                 // no Bukkit owner: apply the drag without firing an event
                 for (Map.Entry<Integer, ItemStack> dslot : silkard$draggedSlots.entrySet()) {

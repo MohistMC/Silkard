@@ -304,7 +304,7 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
 
     // CraftBukkit start - PlayerInteractEvent on block break
     @Inject(method = "handleBlockBreakAction", at = @At("HEAD"))
-    private void silkard$captureBreakArgs(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int sequence, int maxY, CallbackInfo ci) {
+    private void silkard$captureBreakArgs(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int maxY, int sequence, CallbackInfo ci) {
         this.silkard$breakPos = pos;
         this.silkard$breakSeq = sequence;
         this.silkard$breakDir = direction;
@@ -322,7 +322,7 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
     }
 
     @Inject(method = "handleBlockBreakAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1, shift = At.Shift.AFTER))
-    private void silkard$mayNotInteractUpdate(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int sequence, int maxY, CallbackInfo ci) {
+    private void silkard$mayNotInteractUpdate(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int maxY, int sequence, CallbackInfo ci) {
         // SPIGOT-8042: need to ACK above changes first
         this.player.connection.send(new ClientboundBlockChangedAckPacket(sequence));
         BlockEntity blockentity = this.level.getBlockEntity(pos);
@@ -380,7 +380,7 @@ public abstract class MixinServerPlayerGameMode implements ContextServerPlayerGa
     }
 
     @Inject(method = "handleBlockBreakAction", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z", ordinal = 1), cancellable = true)
-    private void silkard$blockDamage(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int sequence, int maxY, CallbackInfo ci) {
+    private void silkard$blockDamage(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int maxY, int sequence, CallbackInfo ci) {
         PlayerInteractEvent event = this.silkard$breakInteractEvent;
         if (event == null) {
             return;
