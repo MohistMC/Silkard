@@ -162,16 +162,14 @@ public abstract class MixinLivingEntity extends Entity implements ContextLivingE
         return 0;
     }
 
-    /**
-     * @author Mgazul
-     * @reason CraftBukkit - award the event-modified experience amount
-     */
-    @Overwrite
-    protected void dropExperience(net.minecraft.server.level.ServerLevel level, @Nullable Entity killer) {
+    @Inject(method = "dropExperience", at = @At("HEAD"), cancellable = true)
+    private void silkard$dropExperience(net.minecraft.server.level.ServerLevel level, @Nullable Entity killer, CallbackInfo ci) {
+        // CraftBukkit - award the event-modified experience amount
         if (!(((Object) this) instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon)) {
             net.minecraft.world.entity.ExperienceOrb.award(level, this.position(), this.silkard$expToDropField);
             this.silkard$expToDropField = 0;
         }
+        ci.cancel();
     }
 
     @Override

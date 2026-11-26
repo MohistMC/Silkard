@@ -759,6 +759,8 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
             ((ContextServerLevel) world).silkard$setGenerator(gen, biomeProvider);
             this.server.addWorld(((ContextLevel) world).getWorld());
             worlddata.setModdedInfo(this.getServerModName(), this.getModdedStatus().shouldReportAsModified());
+            // Keep the vanilla isInitialized callsite for world-load mixins.
+            serverleveldata.isInitialized();
             this.initWorld(world, serverleveldata, worlddata, worldoptions);
 
             // inline addLevel so fabric-lifecycle-events' Map.put wrap target in createLevels survives the @Overwrite
